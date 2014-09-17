@@ -3,11 +3,11 @@
 Backbone.mediator = function () {};
 
 _.extend(Backbone.mediator.prototype, {
-    subscibe: function (name, handler, scope) {
+    subscribe: function (name, handler, scope) {
         Backbone.Events.on.apply(this, arguments);
     },
 
-    subscibeOnce: function (name, handler, scope) {
+    subscribeOnce: function (name, handler, scope) {
         Backbone.Events.once.apply(this, arguments);
     },
 
