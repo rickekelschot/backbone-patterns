@@ -35,11 +35,11 @@ Backbone.utils.readonly = (function (obj) {
 Backbone.mediator = function () {};
 
 _.extend(Backbone.mediator.prototype, {
-    subscibe: function (name, handler, scope) {
+    subscribe: function (name, handler, scope) {
         Backbone.Events.on.apply(this, arguments);
     },
 
-    subscibeOnce: function (name, handler, scope) {
+    subscribeOnce: function (name, handler, scope) {
         Backbone.Events.once.apply(this, arguments);
     },
 
@@ -77,16 +77,16 @@ Backbone.utils.readonly(Backbone.mediator, 'subscibe', 'subscibeOnce', 'unsubscr
 ;/*global Backbone, _ */
 Backbone.decorators || (Backbone.decorators = {});
 Backbone.decorators.PubSub = {
-    subscibe: function (name, handler, scope) {
-        Backbone.mediator.subscibe.apply(Backbone.mediator, arguments);
+    subscribe: function (name, handler, scope) {
+        Backbone.mediator.subscribe.apply(Backbone.mediator, arguments);
     },
 
-    subscibeOnce: function (name, handler, scope) {
-        Backbone.mediator.subscibeOnce.apply(Backbone.mediator, arguments);
+    subscribeOnce: function (name, handler, scope) {
+        Backbone.mediator.subscribeOnce.apply(Backbone.mediator, arguments);
     },
 
-    unsubscibe: function (name, handler, scope) {
-        Backbone.mediator.unsubscibe.apply(Backbone.mediator, arguments);
+    unsubscribe: function (name, handler, scope) {
+        Backbone.mediator.unsubscribe.apply(Backbone.mediator, arguments);
     },
 
     publish: function (name, value) {
