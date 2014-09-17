@@ -27,29 +27,29 @@ module.exports = function (grunt) {
                     'bower_components/jquery/dist/jquery.js',
                     'bower_components/lodash/dist/lodash.compat.min.js',
                     'bower_components/backbone/backbone.js',
-                    'module-pattern/module-start.js',
-                    'js/utils/readonly.js',
-                    'js/mediator/mediator.js',
-                    'js/decorators/pubsub.js',
-                    'js/decorators/request-response.js',
-                    'js/view/view.js',
-                    'module-pattern/module-end.js',
-                    'js/test.js'
+                    'src/module-pattern/module-start.js',
+                    'src/js/utils/readonly.js',
+                    'src/js/mediator/mediator.js',
+                    'src/js/decorators/pubsub.js',
+                    'src/js/decorators/request-response.js',
+                    'src/js/view/view.js',
+                    'src/module-pattern/module-end.js',
+                    'src/js/test.js'
                 ],
-                dest: './dist/backbone-ahold.js'
+                dest: './dist/backbone-patterns.js'
             },
 
             build: {
                 src: [
-                    'module-pattern/module-start.js',
-                    'js/utils/readonly.js',
-                    'js/mediator/mediator.js',
-                    'js/decorators/pubsub.js',
-                    'js/decorators/request-response.js',
-                    'js/view/view.js',
-                    'module-pattern/module-end.js'
+                    'src/module-pattern/module-start.js',
+                    'src/js/utils/readonly.js',
+                    'src/js/mediator/mediator.js',
+                    'src/js/decorators/pubsub.js',
+                    'src/js/decorators/request-response.js',
+                    'src/js/view/view.js',
+                    'src/module-pattern/module-end.js'
                 ],
-                dest: './dist/backbone-ahold.js'
+                dest: './dist/backbone-patterns.js'
             }
         },
 
@@ -70,14 +70,6 @@ module.exports = function (grunt) {
                 files: ['js/**/*.js'],
                 tasks: ['concat:test']
             }
-        },
-
-        amdwrap: {
-            onlyOneFile: {
-                src: './dist/backbone-ahold.js',
-                dest: './dist/backbone-ahold.js'
-            }
-
         }
 
     });
@@ -85,7 +77,6 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-connect');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-watch');
-    grunt.loadNpmTasks('grunt-amd-wrap');
 
     grunt.registerTask('default', ['concat:test', 'connect', 'watch']);
     grunt.registerTask('build', ['concat:build']);
