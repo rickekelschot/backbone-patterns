@@ -1,6 +1,6 @@
 var View = Backbone.View.extend({
     initialize: function () {
-        this.subscibe('test-event', function () {
+        this.subscribe('test-event', function () {
             console.log('trigger!!');
         });
 
@@ -16,6 +16,7 @@ new View();
 var View2 = Backbone.View.extend({
     initialize: function () {
         this.publish('test-event');
+        var obj = this.request('test');
         console.log(this.request('test', 'asdasdsd'));
     }
 });

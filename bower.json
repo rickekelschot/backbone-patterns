@@ -1,8 +1,9 @@
 {
-    "name": "ahold-settings",
-    "version": "0.0.3",
+    "name": "backbone-patterns",
+    "version": "0.0.4",
     "private": true,
     "dependencies": {
+        "jquery": "=>1.11.1",
         "backbone": "1.1.2",
         "underscore"  : ">=1.5.0"
     }
