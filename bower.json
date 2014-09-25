@@ -1,10 +1,17 @@
 {
     "name": "backbone-patterns",
-    "version": "0.0.4",
+    "version": "0.0.5",
+    "main": "dist/backbone-patterns.js",
     "private": true,
     "dependencies": {
-        "jquery": "=>1.11.1",
         "backbone": "1.1.2",
         "underscore"  : ">=1.5.0"
-    }
+    },
+    "ignore": [
+        "src",
+        "*.html",
+        "Gruntfile.js",
+        "package.json",
+        ".gitignore"
+    ]
 }
