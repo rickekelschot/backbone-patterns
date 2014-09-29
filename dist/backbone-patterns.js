@@ -143,8 +143,69 @@ Backbone.decorators.RequestResponse = {
     return results;
 });
 
+;var oldProto = Backbone.View.prototype,
+    extend = Backbone.View.extend,
+    ctor = Backbone.View;
+
+Backbone.View = function (options) {
+    options || (options = {});
+    if (this.optionNames) {
+        _.extend(this, _.pick(options, this.optionNames));
+    }
+
+    ctor.apply(this, arguments);
+    this._subscribeToEvents();
+};
+
+Backbone.View.prototype = oldProto;
+Backbone.View.extend = extend;
 ;/*global Backbone, _ */
 
-_.extend(Backbone.View.prototype, Backbone.decorators.PubSub, Backbone.decorators.RequestResponse);;return Backbone;
+_.extend(Backbone.View.prototype, Backbone.decorators.PubSub, Backbone.decorators.RequestResponse);;Backbone.View.prototype.renderMethod = "append"; //append, replace, prepend
+
+Backbone.View.prototype.render = (function () {
+    if (typeof this.template !== 'function') {
+        throw Error('Template is not a function!');
+    }
+
+    if (this.renderMethod === 'replace') {
+        this.$el = $(
+            this.template(this.getTemplateData())
+        );
+    } else {
+        this.$el[this.renderMethod](
+            this.template(this.getTemplateData())
+        );
+    }
+});
+
+Backbone.View.prototype.getTemplateData = (function () {
+    return null;
+});
+;Backbone.View.prototype._subscribeToEvents = (function () {
+    if (this.subscribeTo) {
+        for (var key in this.subscribeTo) {
+            if (typeof this[this.subscribeTo[key]] === 'function') {
+                this.subscribe(key, this[this.subscribeTo[key]], this);
+            }
+        }
+    }
+});
+
+Backbone.View.prototype._unSubscribeToEvents = (function () {
+    if (this.subscribeTo) {
+        for (var key in this.subscribeTo) {
+            if (typeof this[this.subscribeTo[key]] === 'function') {
+                this.unsubscribe(key, this[this.subscribeTo[key]], this);
+            }
+        }
+    }
+});
+;var oldRemove = Backbone.View.prototype.remove;
+Backbone.View.prototype.remove = (function () {
+    this._unSubscribeToEvents();
+    oldRemove.apply(this, arguments);
+});
+;return Backbone;
 
 }));

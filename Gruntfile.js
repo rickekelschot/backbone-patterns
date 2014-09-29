@@ -24,8 +24,8 @@ module.exports = function (grunt) {
             },
             test: {
                 src: [
-                    'bower_components/jquery/dist/jquery.js',
-                    'bower_components/lodash/dist/lodash.compat.min.js',
+                    'bower_components/jquery/jquery.js',
+                    'bower_components/underscore/underscore.js',
                     'bower_components/backbone/backbone.js',
                     'src/module-pattern/module-start.js',
                     'src/js/utils/readonly.js',
@@ -36,7 +36,11 @@ module.exports = function (grunt) {
                     'src/js/collection/find-model.js',
                     'src/js/model/inspect-attributes.js',
                     'src/js/model/inspect.js',
-                    'src/js/view/view.js',
+                    'src/js/view/constructor.js',
+                    'src/js/view/pubsub.js',
+                    'src/js/view/render.js',
+                    'src/js/view/subscribe-to.js',
+                    'src/js/view/remove.js',
                     'src/module-pattern/module-end.js'
                 ],
                 dest: './dist/backbone-patterns.js'
@@ -53,7 +57,11 @@ module.exports = function (grunt) {
                     'src/js/collection/find-model.js',
                     'src/js/model/inspect-attributes.js',
                     'src/js/model/inspect.js',
-                    'src/js/view/view.js',
+                    'src/js/view/constructor.js',
+                    'src/js/view/pubsub.js',
+                    'src/js/view/render.js',
+                    'src/js/view/subscribe-to.js',
+                    'src/js/view/remove.js',
                     'src/module-pattern/module-end.js'
                 ],
                 dest: './dist/backbone-patterns.js'
