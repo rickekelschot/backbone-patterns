@@ -1,5 +1,5 @@
 Backbone.View.prototype.renderMethod = "append"; //append, replace, prepend
-Backbone.View.prototype.renderType = "callback"; //callback or return
+Backbone.View.prototype.templateEngine = "dust"; //dust
 
 Backbone.View.prototype.render = (function () {
     if (typeof this.template !== 'function') {
@@ -15,12 +15,12 @@ Backbone.View.prototype.render = (function () {
             }
         }.bind(this));
 
-    if (this.renderType === 'return') {
-        appendView(this.template(this.getTemplateData()));
+    if (this.templateEngine === 'dust') {
+        this.template(this.getTemplateData(), function (err, out) {
+            appendView(out);
+        });
     } else {
-         this.template(this.getTemplateData(), function (out) {
-             appendView(out);
-         });
+        appendView(this.template(this.getTemplateData()));
     }
 });
 
