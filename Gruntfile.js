@@ -32,9 +32,12 @@ module.exports = function (grunt) {
                     'src/js/mediator/mediator.js',
                     'src/js/decorators/pubsub.js',
                     'src/js/decorators/request-response.js',
+                    'src/js/collection/inspect.js',
+                    'src/js/collection/find-model.js',
+                    'src/js/model/inspect-attributes.js',
+                    'src/js/model/inspect.js',
                     'src/js/view/view.js',
-                    'src/module-pattern/module-end.js',
-                    'src/js/test.js'
+                    'src/module-pattern/module-end.js'
                 ],
                 dest: './dist/backbone-patterns.js'
             },
@@ -46,6 +49,10 @@ module.exports = function (grunt) {
                     'src/js/mediator/mediator.js',
                     'src/js/decorators/pubsub.js',
                     'src/js/decorators/request-response.js',
+                    'src/js/collection/inspect.js',
+                    'src/js/collection/find-model.js',
+                    'src/js/model/inspect-attributes.js',
+                    'src/js/model/inspect.js',
                     'src/js/view/view.js',
                     'src/module-pattern/module-end.js'
                 ],
@@ -67,7 +74,7 @@ module.exports = function (grunt) {
                 livereload: true
             },
             js: {
-                files: ['js/**/*.js'],
+                files: ['src/js/**/*.js'],
                 tasks: ['concat:test']
             }
         }

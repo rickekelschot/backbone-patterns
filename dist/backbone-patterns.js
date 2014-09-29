@@ -104,7 +104,46 @@ Backbone.decorators.RequestResponse = {
     request: function (name) {
         return Backbone.mediator.request.apply(Backbone.mediator, arguments);
     }
-};;/*global Backbone, _ */
+};;Backbone.Collection.prototype.inspect = (function (attrs) {
+    var results = [];
+    _.each(this.models, function (model) {
+        results = results.concat(model.inspect(attrs));
+    });
+    return results;
+});
+;Backbone.Collection.prototype.findModel = (function (attrs, first) {
+    var results = this.inspect(attrs);
+    return (first) ? results[0] || null : results;
+});;Backbone.Model.prototype.inspectAttributes = (function (attrs) {
+    var results = [];
+    _.each(this.attributes, function (attribute) {
+        if (attribute instanceof Backbone.Collection) {
+            results = results.concat(attribute.inspect(attrs));
+        } else if (attribute instanceof Backbone.Model) {
+            results = results.concat(attribute.inspect(attrs));
+        }
+    });
+    return results;
+});
+;Backbone.Model.prototype.inspect = (function (attrs) {
+    var results = this.inspectAttributes(attrs),
+        matches = true;
+
+    for (var key in attrs) {
+        if (this.get(key) !== attrs[key]) {
+            matches = false;
+            break;
+        }
+    }
+
+    if (matches) {
+        results.push(this);
+    }
+
+    return results;
+});
+
+;/*global Backbone, _ */
 
 _.extend(Backbone.View.prototype, Backbone.decorators.PubSub, Backbone.decorators.RequestResponse);;return Backbone;
 

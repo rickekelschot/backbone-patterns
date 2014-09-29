@@ -8,5 +8,57 @@
 </head>
 <body>
 
+<script>
+
+    (function () {
+        var collection = new Backbone.Collection([
+            { name: 'model1' },
+            { name: 'model2' },
+            { name: 'model3' },
+            { name: 'model4' },
+            { name: 'model5' },
+            { name: 'model6' },
+            { name: 'model7' },
+        ]),
+                collection2 = new Backbone.Collection([
+                    { name: 'model2.1'},
+                    { name: 'model2.2'},
+                    { name: 'model2.3'},
+                    { name: 'model2.4'},
+                    { name: 'model2.5'},
+                    { name: 'model2.6'},
+                    { name: 'model2.7'},
+                    { name: 'model2.8'},
+                    { name: 'model2.9'}
+                ]),
+                collection3 = new Backbone.Collection([
+                    { name: 'model2.3.1'},
+                    { name: 'model2.3.2'},
+                    { name: 'model2.3.3'},
+                    { name: 'model2.3.4'},
+                    { name: 'model2.3.5'},
+                    { name: 'model2.3.6'},
+                    { name: 'model2.3.7'},
+                    { name: 'model2.3.8'},
+                    { name: 'model2.3.9'}
+                ]);
+
+
+        collection.at(2).set({
+            deep: collection2
+        });
+
+        collection2.at(2).set({
+            deep: collection3
+        });
+
+        var results = collection.findModel({
+            name: 'model2.3.6'
+        }, true);
+        console.log(results);
+    })();
+
+</script>
+
 </body>
 </html>
