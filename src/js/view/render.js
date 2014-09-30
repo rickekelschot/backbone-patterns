@@ -13,6 +13,7 @@ Backbone.View.prototype.render = (function () {
                     element
                 );
             }
+            this.trigger('render-complete');
         }.bind(this));
 
     if (this.templateEngine === 'dust') {
