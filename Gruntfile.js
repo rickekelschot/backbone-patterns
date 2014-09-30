@@ -39,7 +39,7 @@ module.exports = function (grunt) {
                     'src/js/view/constructor.js',
                     'src/js/view/pubsub.js',
                     'src/js/view/render.js',
-                    'src/js/view/subscribe-to.js',
+                    'src/js/view/subscriptions.js',
                     'src/js/view/remove.js',
                     'src/module-pattern/module-end.js'
                 ],
@@ -60,7 +60,7 @@ module.exports = function (grunt) {
                     'src/js/view/constructor.js',
                     'src/js/view/pubsub.js',
                     'src/js/view/render.js',
-                    'src/js/view/subscribe-to.js',
+                    'src/js/view/subscriptions.js',
                     'src/js/view/remove.js',
                     'src/module-pattern/module-end.js'
                 ],
