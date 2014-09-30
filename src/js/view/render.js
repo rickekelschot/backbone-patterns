@@ -7,7 +7,7 @@ Backbone.View.prototype.render = (function () {
     }
     var appendView = (function (element) {
             if (this.renderMethod === 'replace') {
-                this.$el = $(element);
+                this.setElement(element);
             } else {
                 this.$el[this.renderMethod](
                     element

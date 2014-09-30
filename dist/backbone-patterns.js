@@ -170,7 +170,7 @@ Backbone.View.prototype.render = (function () {
     }
     var appendView = (function (element) {
             if (this.renderMethod === 'replace') {
-                this.$el = $(element);
+                this.setElement(element);
             } else {
                 this.$el[this.renderMethod](
                     element
@@ -185,6 +185,8 @@ Backbone.View.prototype.render = (function () {
     } else {
         appendView(this.template(this.getTemplateData()));
     }
+
+    return this;
 });
 
 Backbone.View.prototype.getTemplateData = (function () {
