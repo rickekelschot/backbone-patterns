@@ -22,6 +22,8 @@ Backbone.View.prototype.render = (function () {
     } else {
         appendView(this.template(this.getTemplateData()));
     }
+
+    return this;
 });
 
 Backbone.View.prototype.getTemplateData = (function () {
