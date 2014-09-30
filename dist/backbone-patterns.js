@@ -192,25 +192,6 @@ Backbone.View.prototype.render = (function () {
 Backbone.View.prototype.getTemplateData = (function () {
     return null;
 });
-;Backbone.View.prototype._subscribeToEvents = (function () {
-    if (this.subscribeTo) {
-        for (var key in this.subscribeTo) {
-            if (typeof this[this.subscribeTo[key]] === 'function') {
-                this.subscribe(key, this[this.subscribeTo[key]], this);
-            }
-        }
-    }
-});
-
-Backbone.View.prototype._unSubscribeToEvents = (function () {
-    if (this.subscribeTo) {
-        for (var key in this.subscribeTo) {
-            if (typeof this[this.subscribeTo[key]] === 'function') {
-                this.unsubscribe(key, this[this.subscribeTo[key]], this);
-            }
-        }
-    }
-});
 ;var oldRemove = Backbone.View.prototype.remove;
 Backbone.View.prototype.remove = (function () {
     this._unSubscribeToEvents();
