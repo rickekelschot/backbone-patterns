@@ -114,7 +114,21 @@ Backbone.decorators.RequestResponse = {
 ;Backbone.Collection.prototype.findModel = (function (attrs, first) {
     var results = this.inspect(attrs);
     return (first) ? results[0] || null : results;
-});;Backbone.Model.prototype.inspectAttributes = (function (attrs) {
+});;var oldFetch = Backbone.Collection.prototype.fetch;
+Backbone.Collection.prototype.fetch = function (options) {
+    if (typeof Promise === 'undefined' || options) {
+        return oldFetch.apply(this, arguments);
+    }
+
+    var promise = new Promise(function (resolve, reject) {
+        oldFetch.call(this, {
+            success: resolve,
+            error: reject
+        });
+    });
+
+    return promise;
+};;Backbone.Model.prototype.inspectAttributes = (function (attrs) {
     var results = [];
     _.each(this.attributes, function (attribute) {
         if (attribute instanceof Backbone.Collection) {
