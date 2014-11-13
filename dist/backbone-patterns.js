@@ -114,21 +114,7 @@ Backbone.decorators.RequestResponse = {
 ;Backbone.Collection.prototype.findModel = (function (attrs, first) {
     var results = this.inspect(attrs);
     return (first) ? results[0] || null : results;
-});;var oldFetch = Backbone.Collection.prototype.fetch;
-Backbone.Collection.prototype.fetch = function (options) {
-    if (typeof Promise === 'undefined' || options) {
-        return oldFetch.apply(this, arguments);
-    }
-
-    var promise = new Promise(function (resolve, reject) {
-        oldFetch.call(this, {
-            success: resolve,
-            error: reject
-        });
-    });
-
-    return promise;
-};;Backbone.Model.prototype.inspectAttributes = (function (attrs) {
+});;Backbone.Model.prototype.inspectAttributes = (function (attrs) {
     var results = [];
     _.each(this.attributes, function (attribute) {
         if (attribute instanceof Backbone.Collection) {
@@ -226,9 +212,27 @@ Backbone.View.prototype._unSubscribeToEvents = (function () {
         }
     }
 });
-;var oldRemove = Backbone.View.prototype.remove;
+;Backbone.View.prototype.subview = function (name, instance) {
+    if (typeof name === 'undefined') {
+        throw new Error('Subview name is not defined');
+    }
+
+    this.subviews = this.subviews || {};
+
+    if (typeof instance === 'undefined') {
+        return this.subviews[name];
+    }
+
+    this.subviews[name] = instance;
+    return this.subviews[name];
+};
+
+Backbone.View.prototype._removeSubviews = function () {
+    _.invoke(this.subviews, 'remove');
+};var oldRemove = Backbone.View.prototype.remove;
 Backbone.View.prototype.remove = (function () {
     this._unSubscribeToEvents();
+    this._removeSubviews();
     oldRemove.apply(this, arguments);
 });
 ;return Backbone;

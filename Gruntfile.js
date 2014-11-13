@@ -34,13 +34,14 @@ module.exports = function (grunt) {
                     'src/js/decorators/request-response.js',
                     'src/js/collection/inspect.js',
                     'src/js/collection/find-model.js',
-                    'src/js/collection/fetch.js',
+                    /*'src/js/collection/fetch.js',*/
                     'src/js/model/inspect-attributes.js',
                     'src/js/model/inspect.js',
                     'src/js/view/constructor.js',
                     'src/js/view/pubsub.js',
                     'src/js/view/render.js',
                     'src/js/view/subscriptions.js',
+                    'src/js/view/subview.js',
                     'src/js/view/remove.js',
                     'src/module-pattern/module-end.js'
                 ],
@@ -56,13 +57,14 @@ module.exports = function (grunt) {
                     'src/js/decorators/request-response.js',
                     'src/js/collection/inspect.js',
                     'src/js/collection/find-model.js',
-                    'src/js/collection/fetch.js',
+                    /*'src/js/collection/fetch.js',*/
                     'src/js/model/inspect-attributes.js',
                     'src/js/model/inspect.js',
                     'src/js/view/constructor.js',
                     'src/js/view/pubsub.js',
                     'src/js/view/render.js',
                     'src/js/view/subscriptions.js',
+                    'src/js/view/subview.js',
                     'src/js/view/remove.js',
                     'src/module-pattern/module-end.js'
                 ],
