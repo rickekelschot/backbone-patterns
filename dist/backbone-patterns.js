@@ -62,13 +62,17 @@ _.extend(Backbone.mediator.prototype, {
     },
 
     request: function (name) {
-        if (this.handlers && this.handlers[name]) {
-            var scope = this.handlers[name].scope || null,
+        var handler;
+        if (this.handlers) {
+            handler = this.handlers[name] || this.handlers['catch-unregistered'];
+        }
+        if (handler) {
+            var scope = handler.scope || null,
                 props = (arguments.length > 1) ? _.toArray(arguments).slice(1) : [];
 
-            return this.handlers[name].responder.apply(scope, props);
+            return handler.responder.apply(scope, props);
         }
-        throw Error('Backbone.mediator -> Response handler for (' + name + ') is not registered');
+        throw Error('Backbone.mediator -> Response handler for (' + name + ') is not registered and there is no catch-unregistered handler registered');
     }
 });
 
