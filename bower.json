@@ -1,6 +1,6 @@
 {
   "name": "backbone-patterns",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "main": "dist/backbone-patterns.js",
   "private": true,
   "dependencies": {
