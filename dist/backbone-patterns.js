@@ -123,7 +123,23 @@ Backbone.decorators.RequestResponse = {
 ;Backbone.Collection.prototype.findModel = (function (attrs, first) {
     var results = this.inspect(attrs);
     return (first) ? results[0] || null : results;
-});;Backbone.Model.prototype.inspectAttributes = (function (attrs) {
+});;var oldCollectionFetch = Backbone.Collection.prototype.fetch;
+Backbone.Collection.prototype.fetch = (function (options) {
+    options = options || {};
+    if (options.success || options.error || !Backbone.$) {
+        return oldCollectionFetch.call(this, options);
+    }
+
+    var promise = Backbone.$.Deferred();
+    options.success = promise.resolve;
+    options.error = promise.reject;
+
+    oldCollectionFetch.call(this, options);
+
+    return promise;
+});
+
+;Backbone.Model.prototype.inspectAttributes = (function (attrs) {
     var results = [];
     _.each(this.attributes, function (attribute) {
         if (attribute instanceof Backbone.Collection) {
@@ -150,6 +166,38 @@ Backbone.decorators.RequestResponse = {
     }
 
     return results;
+});
+
+;var oldFetch = Backbone.Model.prototype.fetch;
+Backbone.Model.prototype.fetch = (function (options) {
+    options = options || {};
+    if (options.success || options.error || !Backbone.$) {
+        return oldFetch.call(this, options);
+    }
+
+    var promise = Backbone.$.Deferred();
+    options.success = promise.resolve;
+    options.error = promise.reject;
+
+    oldFetch.call(this, options);
+
+    return promise;
+});
+
+;var oldSave = Backbone.Model.prototype.save;
+Backbone.Model.prototype.save = (function (key, val, options) {
+    options = options || {};
+    if (options.success || options.error || !Backbone.$) {
+        return oldSave.call(this, key, val, options);
+    }
+
+    var promise = Backbone.$.Deferred();
+    options.success = promise.resolve;
+    options.error = promise.reject;
+
+    oldSave.call(this, key, val, options);
+
+    return promise;
 });
 
 ;var oldProto = Backbone.View.prototype,
