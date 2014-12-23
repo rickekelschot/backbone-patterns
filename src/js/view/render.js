@@ -6,12 +6,14 @@ Backbone.View.prototype.render = (function () {
         throw Error('Template is not a function!');
     }
     var appendView = (function (element) {
+        var $oldEl;
+        if (this.$el) {
+            $oldEl = this.$el;
+        }
+
         switch (this.renderMethod) {
         case 'replace':
-            var $oldEl;
-            if (this.$el) {
-                $oldEl = this.$el;
-            }
+            this._removeSubviews();
             this.setElement(element, true);
             if ($oldEl) {
                 $oldEl.replaceWith(this.$el);
@@ -19,6 +21,7 @@ Backbone.View.prototype.render = (function () {
             break;
 
         case 'html':
+            this._removeSubviews();
             this.$el.html(
                 $(element).html()
             );
