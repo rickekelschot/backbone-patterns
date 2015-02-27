@@ -1,12 +1,15 @@
-Backbone.View.prototype.append = function (instance, region) {
-    region = region || instance.region;
-    var $container = this.$(region) || this.$el,
-        instanceName = instance.name || _.uniqueId('view');
-
-    if (region && region instanceof jQuery) {
-        $container = region;
+Backbone.View.prototype.append = function (view, region) {
+    region = region || view.region;
+    
+    if (!(view instanceof Backbone.View)) {
+        throw new Error('Instance is not a ')
     }
+    
+    var $container = this.$(region)[0] ? this.$(region) : this.$el,
+        viewName = view.name || _.uniqueId('view');
 
-    $container.append(instance);
-    this.subview(instanceName, instance);
+    view.render();
+    $container.append(view.$el);
+
+    this.subview(viewName, view);
 };

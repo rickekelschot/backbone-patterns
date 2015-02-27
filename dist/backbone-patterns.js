@@ -206,29 +206,28 @@ Backbone.Model.prototype.save = (function (key, val, options) {
 
 Backbone.View = function (options) {
     options || (options = {});
-    var optionNames = ['region'];
-    if (this.optionNames) {
-        _.extend(optionNames, this.optionNames);
-    }
-    _.extend(this, _.pick(options, this.optionNames));
-
+    var optionNames = _.extend(['region'], this.optionNames);
+    _.extend(this, _.pick(options, optionNames));
     ctor.apply(this, arguments);
     this._subscribeToEvents();
 };
 
 Backbone.View.prototype = oldProto;
 Backbone.View.extend = extend;
-;Backbone.View.prototype.append = function (instance, region) {
-    region = region || instance.region;
-    var $container = this.$(region) || this.$el,
-        instanceName = instance.name || _.uniqueId('view');
-
-    if (region && region instanceof jQuery) {
-        $container = region;
+;Backbone.View.prototype.append = function (view, region) {
+    region = region || view.region;
+    
+    if (!(view instanceof Backbone.View)) {
+        throw new Error('Instance is not a ')
     }
+    
+    var $container = this.$(region)[0] ? this.$(region) : this.$el,
+        viewName = view.name || _.uniqueId('view');
 
-    $container.append(instance);
-    this.subview(instanceName, instance);
+    view.render();
+    $container.append(view.$el);
+
+    this.subview(viewName, view);
 };
 ;/*global Backbone, _ */
 
