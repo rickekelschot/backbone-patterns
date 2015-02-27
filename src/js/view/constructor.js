@@ -4,9 +4,11 @@ var oldProto = Backbone.View.prototype,
 
 Backbone.View = function (options) {
     options || (options = {});
+    var optionNames = ['region'];
     if (this.optionNames) {
-        _.extend(this, _.pick(options, this.optionNames));
+        _.extend(optionNames, this.optionNames);
     }
+    _.extend(this, _.pick(options, this.optionNames));
 
     ctor.apply(this, arguments);
     this._subscribeToEvents();
