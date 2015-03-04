@@ -206,7 +206,7 @@ Backbone.Model.prototype.save = (function (key, val, options) {
 
 Backbone.View = function (options) {
     options || (options = {});
-    var optionNames = ['region'].concat(this.optionNames || []);
+    var optionNames = ['region', 'regions', 'name', 'componentModel'].concat(this.optionNames || []);
     _.extend(this, _.pick(options, optionNames));
     ctor.apply(this, arguments);
     this._subscribeToEvents();
