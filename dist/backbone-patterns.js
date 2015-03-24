@@ -210,6 +210,7 @@ Backbone.View = function (options) {
     _.extend(this, _.pick(options, optionNames));
     ctor.apply(this, arguments);
     this._subscribeToEvents();
+    this.isAppended = false;
 };
 
 Backbone.View.prototype = oldProto;
@@ -226,6 +227,9 @@ Backbone.View.extend = extend;
 
     view.render();
     $container.append(view.$el);
+
+    view.isAppended = true;
+    view.trigger('appended');
 
     this.subview(viewName, view);
 };
@@ -329,6 +333,7 @@ Backbone.View.prototype._removeSubviews = function () {
 Backbone.View.prototype.remove = (function () {
     this._unSubscribeToEvents();
     this._removeSubviews();
+    this.isAppended = false;
     oldRemove.apply(this, arguments);
 });
 ;return Backbone;

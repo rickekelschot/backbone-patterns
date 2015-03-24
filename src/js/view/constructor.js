@@ -8,6 +8,7 @@ Backbone.View = function (options) {
     _.extend(this, _.pick(options, optionNames));
     ctor.apply(this, arguments);
     this._subscribeToEvents();
+    this.isAppended = false;
 };
 
 Backbone.View.prototype = oldProto;

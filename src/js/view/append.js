@@ -11,5 +11,8 @@ Backbone.View.prototype.append = function (view, region) {
     view.render();
     $container.append(view.$el);
 
+    view.isAppended = true;
+    view.trigger('appended');
+
     this.subview(viewName, view);
 };
