@@ -18,36 +18,6 @@ module.exports = function (grunt) {
         /* Closure
          * ---------------------------------------------------------------------- */
 
-        concat: {
-            options: {
-                separator: ';'
-            },
-            build: {
-                src: [
-                    'bower_components/backbone.radio/build/backbone.radio.js',
-                    'src/module-pattern/module-start.js',
-                    'src/js/channel/channel.js',
-                    'src/js/utils/readonly.js',
-                    'src/js/decorators/pubsub.js',
-                    'src/js/decorators/request-response.js',
-                    'src/js/decorators/command.js',
-                    'src/js/mediator/mediator.js',
-                    'src/js/collection/fetch.js',
-                    'src/js/model/fetch.js',
-                    'src/js/model/save.js',
-                    'src/js/view/constructor.js',
-                    'src/js/view/append.js',
-                    'src/js/view/pubsub.js',
-                    'src/js/view/render.js',
-                    'src/js/view/subscriptions.js',
-                    'src/js/view/subview.js',
-                    'src/js/view/remove.js',
-                    'src/module-pattern/module-end.js'
-                ],
-                dest: './dist/backbone-patterns.js'
-            }
-        },
-
         connect: {
             server: {
                 options: {
@@ -65,6 +35,31 @@ module.exports = function (grunt) {
                 files: ['src/js/**/*.js'],
                 tasks: ['concat:test']
             }
+        },
+
+        preprocess: {
+            patterns: {
+                src: 'src/js/backbone-patterns.js',
+                dest: 'dist/backbone-patterns.js'
+            }
+        },
+
+        radioPkg: grunt.file.readJSON('bower_components/backbone.radio/package.json'),
+        meta: {
+            version: '<%= radioPkg.version %>',
+            banner: '// Backbone.Radio v<%= meta.version %>\n'
+        },
+
+        template: {
+            options: {
+                data: {
+                    version: '<%= meta.version %>'
+                }
+            },
+            patterns: {
+                src: '<%= preprocess.patterns.dest %>',
+                dest: '<%= preprocess.patterns.dest %>'
+            }
         }
 
     });
@@ -72,8 +67,10 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-connect');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-preprocess');
+    grunt.loadNpmTasks('grunt-template');
 
     grunt.registerTask('default', ['concat:test', 'connect', 'watch']);
-    grunt.registerTask('build', ['concat:build']);
+    grunt.registerTask('build', ['preprocess', 'template']);
 
 };
