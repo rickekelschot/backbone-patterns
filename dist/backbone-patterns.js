@@ -1,4 +1,430 @@
-( function( root, factory ) {
+// Backbone.Radio v0.9.0
+(function(root, factory) {
+  if (typeof define === 'function' && define.amd) {
+    define(['backbone', 'underscore'], function(Backbone, _) {
+      return factory(Backbone, _);
+    });
+  }
+  else if (typeof exports !== 'undefined') {
+    var Backbone = require('backbone');
+    var _ = require('underscore');
+    module.exports = factory(Backbone, _);
+  }
+  else {
+    factory(root.Backbone, root._);
+  }
+}(this, function(Backbone, _) {
+  'use strict';
+
+  var previousRadio = Backbone.Radio;
+  
+  var Radio = Backbone.Radio = {};
+  
+  Radio.VERSION = '0.9.0';
+  
+  // This allows you to run multiple instances of Radio on the same
+  // webapp. After loading the new version, call `noConflict()` to
+  // get a reference to it. At the same time the old version will be
+  // returned to Backbone.Radio.
+  Radio.noConflict = function () {
+    Backbone.Radio = previousRadio;
+    return this;
+  };
+  
+  // Whether or not we're in DEBUG mode or not. DEBUG mode helps you
+  // get around the issues of lack of warnings when events are mis-typed.
+  Radio.DEBUG = false;
+  
+  // Format debug text.
+  Radio._debugText = function(warning, eventName, channelName) {
+    return warning + (channelName ? ' on the ' + channelName + ' channel' : '') +
+      ': "' + eventName + '"';
+  };
+  
+  // This is the method that's called when an unregistered event was called.
+  // By default, it logs warning to the console. By overriding this you could
+  // make it throw an Error, for instance. This would make firing a nonexistent event
+  // have the same consequence as firing a nonexistent method on an Object.
+  Radio.debugLog = function(warning, eventName, channelName) {
+    if (Radio.DEBUG && console && console.warn) {
+      console.warn(Radio._debugText(warning, eventName, channelName));
+    }
+  };
+  
+  var eventSplitter = /\s+/;
+  
+  // An internal method used to handle Radio's method overloading for Requests and
+  // Commands. It's borrowed from Backbone.Events. It differs from Backbone's overload
+  // API (which is used in Backbone.Events) in that it doesn't support space-separated
+  // event names.
+  Radio._eventsApi = function(obj, action, name, rest) {
+    if (!name) {
+      return false;
+    }
+  
+    var results = {};
+  
+    // Handle event maps.
+    if (typeof name === 'object') {
+      for (var key in name) {
+        var result = obj[action].apply(obj, [key, name[key]].concat(rest));
+        eventSplitter.test(key) ? _.extend(results, result) : results[key] = result;
+      }
+      return results;
+    }
+  
+    // Handle space separated event names.
+    if (eventSplitter.test(name)) {
+      var names = name.split(eventSplitter);
+      for (var i = 0, l = names.length; i < l; i++) {
+        results[names[i]] = obj[action].apply(obj, [names[i]].concat(rest));
+      }
+      return results;
+    }
+  
+    return false;
+  };
+  
+  // An optimized way to execute callbacks.
+  Radio._callHandler = function(callback, context, args) {
+    var a1 = args[0], a2 = args[1], a3 = args[2];
+    switch(args.length) {
+      case 0: return callback.call(context);
+      case 1: return callback.call(context, a1);
+      case 2: return callback.call(context, a1, a2);
+      case 3: return callback.call(context, a1, a2, a3);
+      default: return callback.apply(context, args);
+    }
+  };
+  
+  // A helper used by `off` methods to the handler from the store
+  function removeHandler(store, name, callback, context) {
+    var event = store[name];
+    if (
+       (!callback || (callback === event.callback || callback === event.callback._callback)) &&
+       (!context || (context === event.context))
+    ) {
+      delete store[name];
+      return true;
+    }
+  }
+  
+  function removeHandlers(store, name, callback, context) {
+    store || (store = {});
+    var names = name ? [name] : _.keys(store);
+    var matched = false;
+  
+    for (var i = 0, length = names.length; i < length; i++) {
+      name = names[i];
+  
+      // If there's no event by this name, log it and continue
+      // with the loop
+      if (!store[name]) {
+        continue;
+      }
+  
+      if (removeHandler(store, name, callback, context)) {
+        matched = true;
+      }
+    }
+  
+    return matched;
+  }
+  
+  /*
+   * tune-in
+   * -------
+   * Get console logs of a channel's activity
+   *
+   */
+  
+  var _logs = {};
+  
+  // This is to produce an identical function in both tuneIn and tuneOut,
+  // so that Backbone.Events unregisters it.
+  function _partial(channelName) {
+    return _logs[channelName] || (_logs[channelName] = _.partial(Radio.log, channelName));
+  }
+  
+  _.extend(Radio, {
+  
+    // Log information about the channel and event
+    log: function(channelName, eventName) {
+      var args = _.rest(arguments, 2);
+      console.log('[' + channelName + '] "' + eventName + '"', args);
+    },
+  
+    // Logs all events on this channel to the console. It sets an
+    // internal value on the channel telling it we're listening,
+    // then sets a listener on the Backbone.Events
+    tuneIn: function(channelName) {
+      var channel = Radio.channel(channelName);
+      channel._tunedIn = true;
+      channel.on('all', _partial(channelName));
+      return this;
+    },
+  
+    // Stop logging all of the activities on this channel to the console
+    tuneOut: function(channelName) {
+      var channel = Radio.channel(channelName);
+      channel._tunedIn = false;
+      channel.off('all', _partial(channelName));
+      delete _logs[channelName];
+      return this;
+    }
+  });
+  
+  /*
+   * Backbone.Radio.Commands
+   * -----------------------
+   * A messaging system for sending orders.
+   *
+   */
+  
+  Radio.Commands = {
+  
+    // Issue a command
+    command: function(name) {
+      var args = _.rest(arguments);
+      if (Radio._eventsApi(this, 'command', name, args)) {
+        return this;
+      }
+      var channelName = this.channelName;
+      var commands = this._commands;
+  
+      // Check if we should log the command, and if so, do it
+      if (channelName && this._tunedIn) {
+        Radio.log.apply(this, [channelName, name].concat(args));
+      }
+  
+      // If the command isn't handled, log it in DEBUG mode and exit
+      if (commands && (commands[name] || commands['default'])) {
+        var handler = commands[name] || commands['default'];
+        args = commands[name] ? args : arguments;
+        Radio._callHandler(handler.callback, handler.context, args);
+      } else {
+        Radio.debugLog('An unhandled command was fired', name, channelName);
+      }
+  
+      return this;
+    },
+  
+    // Register a handler for a command.
+    comply: function(name, callback, context) {
+      if (Radio._eventsApi(this, 'comply', name, [callback, context])) {
+        return this;
+      }
+      this._commands || (this._commands = {});
+  
+      if (this._commands[name]) {
+        Radio.debugLog('A command was overwritten', name, this.channelName);
+      }
+  
+      this._commands[name] = {
+        callback: callback,
+        context: context || this
+      };
+  
+      return this;
+    },
+  
+    // Register a handler for a command that happens just once.
+    complyOnce: function(name, callback, context) {
+      if (Radio._eventsApi(this, 'complyOnce', name, [callback, context])) {
+        return this;
+      }
+      var self = this;
+  
+      var once = _.once(function() {
+        self.stopComplying(name);
+        return callback.apply(this, arguments);
+      });
+  
+      return this.comply(name, once, context);
+    },
+  
+    // Remove handler(s)
+    stopComplying: function(name, callback, context) {
+      if (Radio._eventsApi(this, 'stopComplying', name)) {
+        return this;
+      }
+  
+      // Remove everything if there are no arguments passed
+      if (!name && !callback && !context) {
+        delete this._commands;
+      } else if (!removeHandlers(this._commands, name, callback, context)) {
+        Radio.debugLog('Attempted to remove the unregistered command', name, this.channelName);
+      }
+  
+      return this;
+    }
+  };
+  
+  /*
+   * Backbone.Radio.Requests
+   * -----------------------
+   * A messaging system for requesting data.
+   *
+   */
+  
+  function makeCallback(callback) {
+    return _.isFunction(callback) ? callback : function () { return callback; };
+  }
+  
+  Radio.Requests = {
+  
+    // Make a request
+    request: function(name) {
+      var args = _.rest(arguments);
+      var results = Radio._eventsApi(this, 'request', name, args);
+      if (results) {
+        return results;
+      }
+      var channelName = this.channelName;
+      var requests = this._requests;
+  
+      // Check if we should log the request, and if so, do it
+      if (channelName && this._tunedIn) {
+        Radio.log.apply(this, [channelName, name].concat(args));
+      }
+  
+      // If the request isn't handled, log it in DEBUG mode and exit
+      if (requests && (requests[name] || requests['default'])) {
+        var handler = requests[name] || requests['default'];
+        args = requests[name] ? args : arguments;
+        return Radio._callHandler(handler.callback, handler.context, args);
+      } else {
+        Radio.debugLog('An unhandled request was fired', name, channelName);
+      }
+    },
+  
+    // Set up a handler for a request
+    reply: function(name, callback, context) {
+      if (Radio._eventsApi(this, 'reply', name, [callback, context])) {
+        return this;
+      }
+  
+      this._requests || (this._requests = {});
+  
+      if (this._requests[name]) {
+        Radio.debugLog('A request was overwritten', name, this.channelName);
+      }
+  
+      this._requests[name] = {
+        callback: makeCallback(callback),
+        context: context || this
+      };
+  
+      return this;
+    },
+  
+    // Set up a handler that can only be requested once
+    replyOnce: function(name, callback, context) {
+      if (Radio._eventsApi(this, 'replyOnce', name, [callback, context])) {
+        return this;
+      }
+  
+      var self = this;
+  
+      var once = _.once(function() {
+        self.stopReplying(name);
+        return makeCallback(callback).apply(this, arguments);
+      });
+  
+      return this.reply(name, once, context);
+    },
+  
+    // Remove handler(s)
+    stopReplying: function(name, callback, context) {
+      if (Radio._eventsApi(this, 'stopReplying', name)) {
+        return this;
+      }
+  
+      // Remove everything if there are no arguments passed
+      if (!name && !callback && !context) {
+        delete this._requests;
+      } else if (!removeHandlers(this._requests, name, callback, context)) {
+        Radio.debugLog('Attempted to remove the unregistered request', name, this.channelName);
+      }
+  
+      return this;
+    }
+  };
+  
+  /*
+   * Backbone.Radio.channel
+   * ----------------------
+   * Get a reference to a channel by name.
+   *
+   */
+  
+  Radio._channels = {};
+  
+  Radio.channel = function(channelName) {
+    if (!channelName) {
+      throw new Error('You must provide a name for the channel.');
+    }
+  
+    if (Radio._channels[channelName]) {
+      return Radio._channels[channelName];
+    } else {
+      return (Radio._channels[channelName] = new Radio.Channel(channelName));
+    }
+  };
+  
+  /*
+   * Backbone.Radio.Channel
+   * ----------------------
+   * A Channel is an object that extends from Backbone.Events,
+   * Radio.Commands, and Radio.Requests.
+   *
+   */
+  
+  Radio.Channel = function(channelName) {
+    this.channelName = channelName;
+  };
+  
+  _.extend(Radio.Channel.prototype, Backbone.Events, Radio.Commands, Radio.Requests, {
+  
+    // Remove all handlers from the messaging systems of this channel
+    reset: function() {
+      this.off();
+      this.stopListening();
+      this.stopComplying();
+      this.stopReplying();
+      return this;
+    }
+  });
+  
+  /*
+   * Top-level API
+   * -------------
+   * Supplies the 'top-level API' for working with Channels directly
+   * from Backbone.Radio.
+   *
+   */
+  
+  var channel, args, systems = [Backbone.Events, Radio.Commands, Radio.Requests];
+  
+  _.each(systems, function(system) {
+    _.each(system, function(method, methodName) {
+      Radio[methodName] = function(channelName) {
+        args = _.rest(arguments);
+        channel = this.channel(channelName);
+        return channel[methodName].apply(channel, args);
+      };
+    });
+  });
+  
+  Radio.reset = function(channelName) {
+    var channels = !channelName ? this._channels : [this._channels[channelName]];
+    _.invoke(channels, 'reset');
+  };
+  
+
+  return Radio;
+}));
+;( function( root, factory ) {
     // Set up Ahold-Backbone for the environment. Start with AMD.
     if ( typeof define === 'function' && define.amd ) {
         define( [ 'exports', 'backbone', 'underscore' ], factory );
@@ -33,75 +459,148 @@ Backbone.utils.readonly = (function (obj) {
 
     return false;
 });;/*global Backbone, _ */
+(function () {
+    var Channel = function (name) {
+        this.name = name;
+        this.handlers = {};
+        this.commands = {};
+    };
 
-Backbone.mediator = function () {};
+    _.extend(Channel.prototype, Backbone.Events);
+    _.extend(Channel.prototype, {
+        subscribe: function (name, handler, scope) {
+            this.on.apply(this, arguments);
+        },
 
-_.extend(Backbone.mediator.prototype, {
-    subscribe: function (name, handler, scope) {
-        Backbone.Events.on.apply(this, arguments);
-    },
+        subscribeOnce: function (name, handler, scope) {
+            this.once.apply(this, arguments);
+        },
 
-    subscribeOnce: function (name, handler, scope) {
-        Backbone.Events.once.apply(this, arguments);
-    },
+        unsubscribe: function (name, handler, scope) {
+            this.off.apply(this, arguments);
+        },
 
-    unsubscribe: function (name, handler, scope) {
-        Backbone.Events.off.apply(this, arguments);
-    },
+        publish: function (name) {
+            this.trigger.apply(this, arguments);
+        },
 
-    publish: function (name) {
-        Backbone.Events.trigger.apply(this, arguments);
-    },
+        setResponder: function (name, responder, scope) {
+            this.handlers[name] = {
+                responder: responder,
+                scope: scope
+            };
+        },
 
-    setResponder: function (name, responder, scope) {
-        this.handlers || (this.handlers = []);
-        this.handlers[name] = {
-            responder: responder,
-            scope: scope
-        };
-    },
+        request: function (name) {
+            var handler;
+            if (this.handlers) {
+                handler = this.handlers[name] || this.handlers['catch-unregistered'];
+            }
+            if (handler) {
+                var scope = handler.scope || null,
+                    props = (arguments.length > 1) ? _.toArray(arguments).slice(1) : [];
 
-    request: function (name) {
-        var handler;
-        if (this.handlers) {
-            handler = this.handlers[name] || this.handlers['catch-unregistered'];
-        }
-        if (handler) {
-            var scope = handler.scope || null,
-                props = (arguments.length > 1) ? _.toArray(arguments).slice(1) : [];
+                //Add request name to start of arguments
+                if (handler === this.handlers['catch-unregistered']) {
+                    props.unshift(name);
+                }
 
-            //Add request name to start of arguments
-            if (handler === this.handlers['catch-unregistered']) {
-                props.unshift(name);
+                return handler.responder.apply(scope, props);
+            }
+            throw Error('Backbone.mediator (' + this.name + ' channel) -> Response handler for (' + name + ') is not registered and there is no catch-unregistered handler registered');
+        },
+
+        comply: function (id, command) {
+            if (!id) {
+                this.throwError('A valid id is required to add a command');
+            }
+            if (!command) {
+                this.throwError('A command constructor is required');
             }
 
-            return handler.responder.apply(scope, props);
-        }
-        throw Error('Backbone.mediator -> Response handler for (' + name + ') is not registered and there is no catch-unregistered handler registered');
-    }
-});
+            if (typeof command.prototype.execute !== 'function') {
+                this.throwError('A command must implement a execute method');
+            }
+        },
 
-Backbone.mediator = new Backbone.mediator();
-Backbone.utils.readonly(Backbone.mediator, 'subscibe', 'subscibeOnce', 'unsubscribe', 'publish');
+        throwError: function (message) {
+            throw new Error('Channel (' + this.name + '): ' + message);
+        }
+    });
+
+
+    Backbone.mediator = function () {
+        this.global = this.channel('global');
+    };
+
+    _.extend(Backbone.mediator.prototype, {
+
+        subscribe: function (name, handler, scope) {
+            return this.global.subscribe.apply(this.global, arguments);
+        },
+
+        subscribeOnce: function (name, handler, scope) {
+            return this.global.subscribeOnce.apply(this.global, arguments);
+        },
+
+        unsubscribe: function (name, handler, scope) {
+            return this.global.unsubscribe.apply(this.global, arguments);
+        },
+
+        publish: function (name) {
+            return this.global.publish.apply(this.global, arguments);
+        },
+
+        setResponder: function (name, responder, scope) {
+            return this.global.setResponder.apply(this.global, arguments);
+        },
+
+        request: function (name) {
+            return this.global.request.apply(this.global, arguments);
+        },
+
+        channel: function (name) {
+            this.channels || (this.channels = {});
+            if (!this.channels[name]) {
+                this.addChannel(name);
+            }
+
+            return this.channels[name];
+        },
+
+        addChannel: function (name) {
+            this.channels[name] = new Channel(name);
+        }
+
+    });
+
+    Backbone.mediator = new Backbone.mediator();
+    Backbone.utils.readonly(Backbone.mediator, 'subscibe', 'subscibeOnce', 'unsubscribe', 'publish');
+
+})();
 
 
 ;/*global Backbone, _ */
 Backbone.decorators || (Backbone.decorators = {});
 Backbone.decorators.PubSub = {
     subscribe: function (name, handler, scope) {
-        Backbone.mediator.subscribe.apply(Backbone.mediator, arguments);
+        return Backbone.mediator.subscribe.apply(Backbone.mediator, arguments);
     },
 
     subscribeOnce: function (name, handler, scope) {
-        Backbone.mediator.subscribeOnce.apply(Backbone.mediator, arguments);
+        return Backbone.mediator.subscribeOnce.apply(Backbone.mediator, arguments);
     },
 
     unsubscribe: function (name, handler, scope) {
-        Backbone.mediator.unsubscribe.apply(Backbone.mediator, arguments);
+        return Backbone.mediator.unsubscribe.apply(Backbone.mediator, arguments);
     },
 
     publish: function (name, value) {
-        Backbone.mediator.publish.apply(Backbone.mediator, arguments);
+        return Backbone.mediator.publish.apply(Backbone.mediator, arguments);
+    },
+
+    channel: function (name) {
+        return Backbone.mediator.channel.apply(Backbone.mediator, arguments);
     }
 };;/*global Backbone, _ */
 Backbone.decorators || (Backbone.decorators = {});
@@ -293,24 +792,37 @@ Backbone.View.prototype.getTemplateData = (function () {
     }
     return null;
 });
-;Backbone.View.prototype._subscribeToEvents = (function () {
+;Backbone.View.prototype._parseSubscriptions = (function (doSubscribe) {
     if (typeof this.subscriptions !== 'undefined') {
-        for (var key in this.subscriptions) {
-            if (typeof this[this.subscriptions[key]] === 'function') {
-                this.subscribe(key, this[this.subscriptions[key]], this);
+        _.each(this.subscriptions, function (events, channel) {
+            if (_.isObject(events)) {
+                _.each(events, function (handler, event) {
+                    if (typeof this[handler] === 'function') {
+                        if (doSubscribe) {
+                            this.channel(channel).subscribe(event, this[handler], this);
+                        } else {
+                            this.channel(channel).unsubscribe(event, this[handler], this);
+                        }
+                    }
+                }.bind(this));
+            } else if (typeof this[events] === 'function') {
+                //Legacy, for old notation
+                if (doSubscribe) {
+                    this.subscribe(channel, this[events], this);
+                } else {
+                    this.unsubscribe(channel, this[events], this);
+                }
             }
-        }
+        }.bind(this));
     }
 });
 
+Backbone.View.prototype._subscribeToEvents = (function () {
+    this._parseSubscriptions(true);
+});
+
 Backbone.View.prototype._unSubscribeToEvents = (function () {
-    if (typeof this.subscriptions !== 'undefined') {
-        for (var key in this.subscriptions) {
-            if (typeof this[this.subscriptions[key]] === 'function') {
-                this.unsubscribe(key, this[this.subscriptions[key]], this);
-            }
-        }
-    }
+    this._parseSubscriptions(false);
 });
 ;Backbone.View.prototype.subview = function (name, instance) {
     if (typeof name === 'undefined') {

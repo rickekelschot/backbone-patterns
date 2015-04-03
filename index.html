@@ -8,63 +8,40 @@
 </head>
 <body>
 <div class="test" style="display: block; height: 100px; width: 100px; background: red"></div>
+<script src="bower_components/jquery/jquery.js"></script>
+<script src="bower_components/underscore/underscore.js"></script>
+<script src="bower_components/backbone/backbone.js"></script>
 <script src="dist/backbone-patterns.js"></script>
 <script>
 
     (function () {
-        var collection = new Backbone.Collection([
-            { name: 'model1' },
-            { name: 'model2' },
-            { name: 'model3' },
-            { name: 'model4' },
-            { name: 'model5' },
-            { name: 'model6' },
-            { name: 'model7' },
-        ]),
-                collection2 = new Backbone.Collection([
-                    { name: 'model2.1'},
-                    { name: 'model2.2'},
-                    { name: 'model2.3'},
-                    { name: 'model2.4'},
-                    { name: 'model2.5'},
-                    { name: 'model2.6'},
-                    { name: 'model2.7'},
-                    { name: 'model2.8'},
-                    { name: 'model2.9'}
-                ]),
-                collection3 = new Backbone.Collection([
-                    { name: 'model2.3.1'},
-                    { name: 'model2.3.2'},
-                    { name: 'model2.3.3'},
-                    { name: 'model2.3.4'},
-                    { name: 'model2.3.5'},
-                    { name: 'model2.3.6'},
-                    { name: 'model2.3.7'},
-                    { name: 'model2.3.8'},
-                    { name: 'model2.3.9'}
-                ]);
 
-
-        collection.at(2).set({
-            deep: collection2
-        });
-
-        collection2.at(2).set({
-            deep: collection3
-        });
-
-        var results = collection.findModel({
-            name: 'model2.3.6'
-        }, true);
 
         var View = Backbone.View.extend({
             optionNames: ['test'],
-            subscribeTo: {
-                'test': 'handleTest'
+            subscriptions: {
+                'test': 'handleGlobalTest',
+                'custom': {
+                    'test': 'handleCustomTest'
+                }
             },
 
-            handleTest: function () {
-                console.log('hello')
+            initialize: function () {
+                this.setResponder('log', function () {
+                    return 'hello';
+                });
+
+                this.channel('custom').setResponder('log', function () {
+                    return 'world';
+                })
+            },
+
+            handleGlobalTest: function (request) {
+                console.log(this.request(request));
+            },
+
+            handleCustomTest: function (request) {
+                console.log(this.channel('custom').request(request));
             }
         });
 
@@ -72,11 +49,10 @@
             el: '.test',
             test: 'lala'
         });
-        view.publish('test');
+        Backbone.mediator.publish('test', 'log');
+        Backbone.mediator.channel('custom').publish('test', 'log');
         view.remove();
-        console.log(results);
-        console.log(view, view.test);
-        console.log(new Backbone.View)
+
     })();
 
 </script>
