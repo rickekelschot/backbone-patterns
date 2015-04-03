@@ -1,11 +1,15 @@
 /*global Backbone, _ */
+
 Backbone.decorators || (Backbone.decorators = {});
 Backbone.decorators.RequestResponse = {
-    setResponder: function (name, responder, scope) {
-        Backbone.mediator.setResponder.apply(Backbone.mediator, arguments);
-    },
+    reply: Backbone.Radio.reply.bind(Backbone.Radio, 'global'),
 
-    request: function (name) {
-        return Backbone.mediator.request.apply(Backbone.mediator, arguments);
-    }
+    replyOnce: Backbone.Radio.replyOnce.bind(Backbone.Radio, 'global'),
+
+    stopReplying: Backbone.Radio.stopReplying.bind(Backbone.Radio, 'global'),
+
+    request: Backbone.Radio.request.bind(Backbone.Radio, 'global'),
+
+    channel: Backbone.Radio.channel
+
 };

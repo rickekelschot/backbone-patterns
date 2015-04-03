@@ -437,7 +437,11 @@
     else {
         factory( root, root.Backbone, root._ );
     }
-}( this, function( exports, Backbone, _ ) {;Backbone.utils = {};
+}( this, function( exports, Backbone, _ ) {;Backbone.Radio.Channel.prototype.subscribe = Backbone.Radio.Channel.prototype.on;
+Backbone.Radio.Channel.prototype.subscribeOnce = Backbone.Radio.Channel.prototype.once;
+Backbone.Radio.Channel.prototype.unsubscribe = Backbone.Radio.Channel.prototype.off;
+Backbone.Radio.Channel.prototype.publish = Backbone.Radio.Channel.prototype.trigger;
+;Backbone.utils = {};
 Backbone.utils.readonly = (function (obj) {
     var descriptor;
     if (typeof Object.defineProperty !== "undefined") {
@@ -459,120 +463,50 @@ Backbone.utils.readonly = (function (obj) {
 
     return false;
 });;/*global Backbone, _ */
+Backbone.decorators || (Backbone.decorators = {});
+Backbone.decorators.PubSub = {
+    subscribe: Backbone.Radio.on.bind(Backbone.Radio, 'global'),
+
+    subscribeOnce: Backbone.Radio.once.bind(Backbone.Radio, 'global'),
+
+    unsubscribe: Backbone.Radio.off.bind(Backbone.Radio, 'global'),
+
+    publish: Backbone.Radio.trigger.bind(Backbone.Radio, 'global'),
+
+    channel: Backbone.Radio.channel
+};;/*global Backbone, _ */
+
+Backbone.decorators || (Backbone.decorators = {});
+Backbone.decorators.RequestResponse = {
+    reply: Backbone.Radio.reply.bind(Backbone.Radio, 'global'),
+
+    replyOnce: Backbone.Radio.replyOnce.bind(Backbone.Radio, 'global'),
+
+    stopReplying: Backbone.Radio.stopReplying.bind(Backbone.Radio, 'global'),
+
+    request: Backbone.Radio.request.bind(Backbone.Radio, 'global'),
+
+    channel: Backbone.Radio.channel
+
+};
+;/*global Backbone, _ */
+Backbone.decorators || (Backbone.decorators = {});
+Backbone.decorators.Command = {
+    command: Backbone.Radio.command.bind(Backbone.Radio, 'global'),
+
+    comply: Backbone.Radio.comply.bind(Backbone.Radio, 'global'),
+
+    complyOnce: Backbone.Radio.complyOnce.bind(Backbone.Radio, 'global'),
+
+    stopComplying: Backbone.Radio.stopComplying.bind(Backbone.Radio, 'global'),
+
+    channel: Backbone.Radio.channel
+};;/*global Backbone, _ */
 (function () {
-    var Channel = function (name) {
-        this.name = name;
-        this.handlers = {};
-        this.commands = {};
-    };
 
-    _.extend(Channel.prototype, Backbone.Events);
-    _.extend(Channel.prototype, {
-        subscribe: function (name, handler, scope) {
-            this.on.apply(this, arguments);
-        },
+    Backbone.mediator = function () {};
 
-        subscribeOnce: function (name, handler, scope) {
-            this.once.apply(this, arguments);
-        },
-
-        unsubscribe: function (name, handler, scope) {
-            this.off.apply(this, arguments);
-        },
-
-        publish: function (name) {
-            this.trigger.apply(this, arguments);
-        },
-
-        setResponder: function (name, responder, scope) {
-            this.handlers[name] = {
-                responder: responder,
-                scope: scope
-            };
-        },
-
-        request: function (name) {
-            var handler;
-            if (this.handlers) {
-                handler = this.handlers[name] || this.handlers['catch-unregistered'];
-            }
-            if (handler) {
-                var scope = handler.scope || null,
-                    props = (arguments.length > 1) ? _.toArray(arguments).slice(1) : [];
-
-                //Add request name to start of arguments
-                if (handler === this.handlers['catch-unregistered']) {
-                    props.unshift(name);
-                }
-
-                return handler.responder.apply(scope, props);
-            }
-            throw Error('Backbone.mediator (' + this.name + ' channel) -> Response handler for (' + name + ') is not registered and there is no catch-unregistered handler registered');
-        },
-
-        comply: function (id, command) {
-            if (!id) {
-                this.throwError('A valid id is required to add a command');
-            }
-            if (!command) {
-                this.throwError('A command constructor is required');
-            }
-
-            if (typeof command.prototype.execute !== 'function') {
-                this.throwError('A command must implement a execute method');
-            }
-        },
-
-        throwError: function (message) {
-            throw new Error('Channel (' + this.name + '): ' + message);
-        }
-    });
-
-
-    Backbone.mediator = function () {
-        this.global = this.channel('global');
-    };
-
-    _.extend(Backbone.mediator.prototype, {
-
-        subscribe: function (name, handler, scope) {
-            return this.global.subscribe.apply(this.global, arguments);
-        },
-
-        subscribeOnce: function (name, handler, scope) {
-            return this.global.subscribeOnce.apply(this.global, arguments);
-        },
-
-        unsubscribe: function (name, handler, scope) {
-            return this.global.unsubscribe.apply(this.global, arguments);
-        },
-
-        publish: function (name) {
-            return this.global.publish.apply(this.global, arguments);
-        },
-
-        setResponder: function (name, responder, scope) {
-            return this.global.setResponder.apply(this.global, arguments);
-        },
-
-        request: function (name) {
-            return this.global.request.apply(this.global, arguments);
-        },
-
-        channel: function (name) {
-            this.channels || (this.channels = {});
-            if (!this.channels[name]) {
-                this.addChannel(name);
-            }
-
-            return this.channels[name];
-        },
-
-        addChannel: function (name) {
-            this.channels[name] = new Channel(name);
-        }
-
-    });
+    _.extend(Backbone.mediator.prototype, Backbone.decorators.PubSub, Backbone.decorators.RequestResponse, Backbone.decorators.Command);
 
     Backbone.mediator = new Backbone.mediator();
     Backbone.utils.readonly(Backbone.mediator, 'subscibe', 'subscibeOnce', 'unsubscribe', 'publish');
@@ -580,49 +514,7 @@ Backbone.utils.readonly = (function (obj) {
 })();
 
 
-;/*global Backbone, _ */
-Backbone.decorators || (Backbone.decorators = {});
-Backbone.decorators.PubSub = {
-    subscribe: function (name, handler, scope) {
-        return Backbone.mediator.subscribe.apply(Backbone.mediator, arguments);
-    },
-
-    subscribeOnce: function (name, handler, scope) {
-        return Backbone.mediator.subscribeOnce.apply(Backbone.mediator, arguments);
-    },
-
-    unsubscribe: function (name, handler, scope) {
-        return Backbone.mediator.unsubscribe.apply(Backbone.mediator, arguments);
-    },
-
-    publish: function (name, value) {
-        return Backbone.mediator.publish.apply(Backbone.mediator, arguments);
-    },
-
-    channel: function (name) {
-        return Backbone.mediator.channel.apply(Backbone.mediator, arguments);
-    }
-};;/*global Backbone, _ */
-Backbone.decorators || (Backbone.decorators = {});
-Backbone.decorators.RequestResponse = {
-    setResponder: function (name, responder, scope) {
-        Backbone.mediator.setResponder.apply(Backbone.mediator, arguments);
-    },
-
-    request: function (name) {
-        return Backbone.mediator.request.apply(Backbone.mediator, arguments);
-    }
-};;Backbone.Collection.prototype.inspect = (function (attrs) {
-    var results = [];
-    _.each(this.models, function (model) {
-        results = results.concat(model.inspect(attrs));
-    });
-    return results;
-});
-;Backbone.Collection.prototype.findModel = (function (attrs, first) {
-    var results = this.inspect(attrs);
-    return (first) ? results[0] || null : results;
-});;var oldCollectionFetch = Backbone.Collection.prototype.fetch;
+;var oldCollectionFetch = Backbone.Collection.prototype.fetch;
 Backbone.Collection.prototype.fetch = (function (options) {
     options = options || {};
     if (options.success || options.error || !Backbone.$) {
@@ -636,35 +528,6 @@ Backbone.Collection.prototype.fetch = (function (options) {
     oldCollectionFetch.call(this, options);
 
     return promise;
-});
-
-;Backbone.Model.prototype.inspectAttributes = (function (attrs) {
-    var results = [];
-    _.each(this.attributes, function (attribute) {
-        if (attribute instanceof Backbone.Collection) {
-            results = results.concat(attribute.inspect(attrs));
-        } else if (attribute instanceof Backbone.Model) {
-            results = results.concat(attribute.inspect(attrs));
-        }
-    });
-    return results;
-});
-;Backbone.Model.prototype.inspect = (function (attrs) {
-    var results = this.inspectAttributes(attrs),
-        matches = true;
-
-    for (var key in attrs) {
-        if (this.get(key) !== attrs[key]) {
-            matches = false;
-            break;
-        }
-    }
-
-    if (matches) {
-        results.push(this);
-    }
-
-    return results;
 });
 
 ;var oldFetch = Backbone.Model.prototype.fetch;
@@ -705,7 +568,7 @@ Backbone.Model.prototype.save = (function (key, val, options) {
 
 Backbone.View = function (options) {
     options || (options = {});
-    var optionNames = ['region', 'regions', 'name', 'componentModel'].concat(this.optionNames || []);
+    var optionNames = ['region', 'regions', 'name'].concat(this.optionNames || []);
     _.extend(this, _.pick(options, optionNames));
     ctor.apply(this, arguments);
     this._subscribeToEvents();
@@ -734,7 +597,7 @@ Backbone.View.extend = extend;
 };
 ;/*global Backbone, _ */
 
-_.extend(Backbone.View.prototype, Backbone.decorators.PubSub, Backbone.decorators.RequestResponse);;Backbone.View.prototype.renderMethod = 'html'; //append, replace, prepend
+_.extend(Backbone.View.prototype, Backbone.decorators.PubSub, Backbone.decorators.RequestResponse, Backbone.decorators.Command);;Backbone.View.prototype.renderMethod = 'html'; //append, replace, prepend
 Backbone.View.prototype.templateEngine = 'dust'; //dust
 
 Backbone.View.prototype.render = (function () {

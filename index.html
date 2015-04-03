@@ -20,28 +20,32 @@
         var View = Backbone.View.extend({
             optionNames: ['test'],
             subscriptions: {
-                'test': 'handleGlobalTest',
+                'globalTest': 'handleGlobalTest',
                 'custom': {
-                    'test': 'handleCustomTest'
+                    'customTest': 'handleCustomTest'
                 }
             },
 
             initialize: function () {
-                this.setResponder('log', function () {
-                    return 'hello';
+                this.reply('log', function (a, b) {
+                    return 'hello ' + a + ' ' + b;
                 });
 
-                this.channel('custom').setResponder('log', function () {
-                    return 'world';
+                this.channel('custom').reply('log', function (a, b) {
+                    return 'world ' + a + ' ' + b;
                 })
+
+                this.comply('jump', function () {
+                    console.log('I jumped');
+                });
             },
 
             handleGlobalTest: function (request) {
-                console.log(this.request(request));
+                console.log(this.request(request, 'world', Math.random()));
             },
 
             handleCustomTest: function (request) {
-                console.log(this.channel('custom').request(request));
+                console.log(this.channel('custom').request(request, 'hello', Math.random()));
             }
         });
 
@@ -49,8 +53,9 @@
             el: '.test',
             test: 'lala'
         });
-        Backbone.mediator.publish('test', 'log');
-        Backbone.mediator.channel('custom').publish('test', 'log');
+        Backbone.mediator.publish('globalTest', 'log');
+        Backbone.mediator.channel('custom').publish('customTest', 'log');
+        Backbone.mediator.command('jump');
         view.remove();
 
     })();

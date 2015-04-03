@@ -1,23 +1,13 @@
 /*global Backbone, _ */
 Backbone.decorators || (Backbone.decorators = {});
 Backbone.decorators.PubSub = {
-    subscribe: function (name, handler, scope) {
-        return Backbone.mediator.subscribe.apply(Backbone.mediator, arguments);
-    },
+    subscribe: Backbone.Radio.on.bind(Backbone.Radio, 'global'),
 
-    subscribeOnce: function (name, handler, scope) {
-        return Backbone.mediator.subscribeOnce.apply(Backbone.mediator, arguments);
-    },
+    subscribeOnce: Backbone.Radio.once.bind(Backbone.Radio, 'global'),
 
-    unsubscribe: function (name, handler, scope) {
-        return Backbone.mediator.unsubscribe.apply(Backbone.mediator, arguments);
-    },
+    unsubscribe: Backbone.Radio.off.bind(Backbone.Radio, 'global'),
 
-    publish: function (name, value) {
-        return Backbone.mediator.publish.apply(Backbone.mediator, arguments);
-    },
+    publish: Backbone.Radio.trigger.bind(Backbone.Radio, 'global'),
 
-    channel: function (name) {
-        return Backbone.mediator.channel.apply(Backbone.mediator, arguments);
-    }
+    channel: Backbone.Radio.channel
 };
