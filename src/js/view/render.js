@@ -13,7 +13,7 @@ Backbone.View.prototype.render = (function () {
 
         switch (this.renderMethod) {
         case 'replace':
-            this._removeSubviews();
+            this.removeSubviews();
             this.setElement(element, true);
             if ($oldEl) {
                 $oldEl.replaceWith(this.$el);
@@ -21,7 +21,7 @@ Backbone.View.prototype.render = (function () {
             break;
 
         case 'html':
-            this._removeSubviews();
+            this.removeSubviews();
             this.$el.html(
                 $(element).html()
             );

@@ -31,6 +31,10 @@
                     return 'hello ' + a + ' ' + b;
                 });
 
+                this.reply('default', function (a, b) {
+                    console.log('caught ' + a + ' ' + b);
+                });
+
                 this.channel('custom').reply('log', function (a, b) {
                     return 'world ' + a + ' ' + b;
                 })
@@ -56,7 +60,18 @@
         Backbone.mediator.publish('globalTest', 'log');
         Backbone.mediator.channel('custom').publish('customTest', 'log');
         Backbone.mediator.command('jump');
+        Backbone.mediator.request('someUnhandledRequest', 'test');
         view.remove();
+
+        var model = new Backbone.Model();
+        model.url = 'https://api.github.com/repos/vmg/redcarpet/issues';
+        model.fetch();
+        model.abort();
+
+        var collection = new Backbone.Collection();
+        collection.url = 'https://api.github.com/repos/vmg/redcarpet/issues';
+        collection.fetch();
+        collection.abort();
 
     })();
 

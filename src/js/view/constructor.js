@@ -7,7 +7,7 @@ Backbone.View = function (options) {
     var optionNames = ['region', 'regions', 'name'].concat(this.optionNames || []);
     _.extend(this, _.pick(options, optionNames));
     ctor.apply(this, arguments);
-    this._subscribeToEvents();
+    this.subscribeToEvents();
     this.isAppended = false;
 };
 

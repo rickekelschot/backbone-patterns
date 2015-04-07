@@ -514,12 +514,21 @@
         options.success = promise.resolve;
         options.error = promise.reject;
     
-        oldCollectionFetch.call(this, options);
+        this.xhr = oldCollectionFetch.call(this, options);
     
         return promise;
     });
     
     
+    Backbone.Collection.prototype.sync = (function () {
+        delete this.xhr;
+        return Backbone.sync.apply(this, arguments);
+    });
+    Backbone.Collection.prototype.abort = (function () {
+        if (this.xhr) {
+            this.xhr.abort();
+        }
+    });
     var oldFetch = Backbone.Model.prototype.fetch;
     Backbone.Model.prototype.fetch = (function (options) {
         options = options || {};
@@ -531,7 +540,7 @@
         options.success = promise.resolve;
         options.error = promise.reject;
     
-        oldFetch.call(this, options);
+        this.xhr = oldFetch.call(this, options);
     
         return promise;
     });
@@ -554,6 +563,16 @@
     });
     
     
+    
+    Backbone.Model.prototype.sync = (function () {
+        delete this.xhr;
+        return Backbone.sync.apply(this, arguments);
+    });
+    Backbone.Model.prototype.abort = (function () {
+        if (this.xhr) {
+            this.xhr.abort();
+        }
+    });
     var oldProto = Backbone.View.prototype,
         extend = Backbone.View.extend,
         ctor = Backbone.View;
@@ -563,22 +582,23 @@
         var optionNames = ['region', 'regions', 'name'].concat(this.optionNames || []);
         _.extend(this, _.pick(options, optionNames));
         ctor.apply(this, arguments);
-        this._subscribeToEvents();
+        this.subscribeToEvents();
         this.isAppended = false;
     };
     
     Backbone.View.prototype = oldProto;
     Backbone.View.extend = extend;
     
-    Backbone.View.prototype.append = function (view, region) {
-        region = region || view.region;
-        
+    Backbone.View.prototype.append = function (view, options) {
+        options = options || {};
+    
         if (!(view instanceof Backbone.View)) {
-            throw new Error('Instance is not a ')
+            throw new Error('View is not a instance of Backbone.View')
         }
-        
-        var $container = this.$(region)[0] ? this.$(region) : this.$el,
-            viewName = view.name || _.uniqueId('view');
+    
+        var region = options.region || view.region,
+            viewName = options.name || view.cid,
+            $container = this.$(region)[0] ? this.$(region) : this.$el;
     
         view.render();
         $container.append(view.$el);
@@ -607,7 +627,7 @@
     
             switch (this.renderMethod) {
             case 'replace':
-                this._removeSubviews();
+                this.removeSubviews();
                 this.setElement(element, true);
                 if ($oldEl) {
                     $oldEl.replaceWith(this.$el);
@@ -615,7 +635,7 @@
                 break;
     
             case 'html':
-                this._removeSubviews();
+                this.removeSubviews();
                 this.$el.html(
                     $(element).html()
                 );
@@ -651,7 +671,7 @@
         return null;
     });
     
-    Backbone.View.prototype._parseSubscriptions = (function (doSubscribe) {
+    Backbone.View.prototype.parseSubscriptions = (function (doSubscribe) {
         if (typeof this.subscriptions !== 'undefined') {
             _.each(this.subscriptions, function (events, channel) {
                 if (_.isObject(events)) {
@@ -676,12 +696,12 @@
         }
     });
     
-    Backbone.View.prototype._subscribeToEvents = (function () {
-        this._parseSubscriptions(true);
+    Backbone.View.prototype.subscribeToEvents = (function () {
+        this.parseSubscriptions(true);
     });
     
-    Backbone.View.prototype._unSubscribeToEvents = (function () {
-        this._parseSubscriptions(false);
+    Backbone.View.prototype.unSubscribeToEvents = (function () {
+        this.parseSubscriptions(false);
     });
     
     Backbone.View.prototype.subview = function (name, instance) {
@@ -695,18 +715,31 @@
             return this.subviews[name];
         }
     
+        if (this.subviews[name]) {
+            throw new Error('A subview with name: ' + name + ' already exists. Call removeSubview before adding it.');
+        }
+    
         this.subviews[name] = instance;
         return this.subviews[name];
     };
     
-    Backbone.View.prototype._removeSubviews = function () {
+    Backbone.View.prototype.removeSubview = function (name) {
+        if (this.subviews[name]) {
+            this.subviews[name].remove();
+            delete this.subviews[name];
+        }
+    }
+    
+    Backbone.View.prototype.removeSubviews = function () {
         _.invoke(this.subviews, 'remove');
+        this.subviews = {};
     }
     var oldRemove = Backbone.View.prototype.remove;
     Backbone.View.prototype.remove = (function () {
-        this._unSubscribeToEvents();
-        this._removeSubviews();
+        this.unSubscribeToEvents();
+        this.removeSubviews();
         this.isAppended = false;
+        this.trigger('removed');
         oldRemove.apply(this, arguments);
     });
     

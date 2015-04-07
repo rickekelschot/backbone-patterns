@@ -1,4 +1,4 @@
-Backbone.View.prototype._parseSubscriptions = (function (doSubscribe) {
+Backbone.View.prototype.parseSubscriptions = (function (doSubscribe) {
     if (typeof this.subscriptions !== 'undefined') {
         _.each(this.subscriptions, function (events, channel) {
             if (_.isObject(events)) {
@@ -23,10 +23,10 @@ Backbone.View.prototype._parseSubscriptions = (function (doSubscribe) {
     }
 });
 
-Backbone.View.prototype._subscribeToEvents = (function () {
-    this._parseSubscriptions(true);
+Backbone.View.prototype.subscribeToEvents = (function () {
+    this.parseSubscriptions(true);
 });
 
-Backbone.View.prototype._unSubscribeToEvents = (function () {
-    this._parseSubscriptions(false);
+Backbone.View.prototype.unSubscribeToEvents = (function () {
+    this.parseSubscriptions(false);
 });

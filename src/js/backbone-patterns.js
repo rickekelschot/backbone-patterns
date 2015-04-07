@@ -23,8 +23,12 @@
     // @include decorators/command.js
     // @include mediator/mediator.js
     // @include collection/fetch.js
+    // @include collection/sync.js
+    // @include collection/abort.js
     // @include model/fetch.js
     // @include model/save.js
+    // @include model/sync.js
+    // @include model/abort.js
     // @include view/constructor.js
     // @include view/append.js
     // @include view/pubsub.js

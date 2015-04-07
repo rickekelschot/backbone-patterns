@@ -9,7 +9,7 @@ Backbone.Collection.prototype.fetch = (function (options) {
     options.success = promise.resolve;
     options.error = promise.reject;
 
-    oldCollectionFetch.call(this, options);
+    this.xhr = oldCollectionFetch.call(this, options);
 
     return promise;
 });
