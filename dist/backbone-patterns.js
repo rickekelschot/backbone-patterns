@@ -591,7 +591,8 @@
     
     Backbone.View.prototype.append = function (view, options) {
         options = _.defaults(options || {}, {
-            render: true
+            render: true,
+            replace: false
         });
     
         if (!(view instanceof Backbone.View)) {
@@ -600,17 +601,22 @@
     
         var region = options.region || view.region,
             viewName = options.name || view.cid,
-            $container = this.$(region)[0] ? this.$(region) : this.$el;
+            $container = this.$(region)[0] ? this.$(region) : this.$el,
+            addMethod = options.replace ? 'prepend' : 'append';
     
         if (options.render) {
             view.render();
         }
     
-        $container.append(view.$el);
+    
+        $container[addMethod](view.$el);
     
         view.isAppended = true;
         view.trigger('appended');
     
+        if (options.replace && this.subview(viewName)) {
+            this.removeSubview(viewName);
+        }
         this.subview(viewName, view);
     };
     
