@@ -1,7 +1,7 @@
 Backbone.View.prototype.append = function (view, options) {
     options = _.defaults(options || {}, {
         render: true,
-        replace: false
+        prepend: false
     });
 
     if (!(view instanceof Backbone.View)) {
