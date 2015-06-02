@@ -31,6 +31,7 @@
     // @include model/abort.js
     // @include view/constructor.js
     // @include view/append.js
+    // @include view/prepend.js
     // @include view/pubsub.js
     // @include view/render.js
     // @include view/subscriptions.js
