@@ -592,7 +592,8 @@
     Backbone.View.prototype.append = function (view, options) {
         options = _.defaults(options || {}, {
             render: true,
-            replace: false
+            replace: false,
+            addMethod: 'append'
         });
     
         if (!(view instanceof Backbone.View)) {
@@ -601,15 +602,14 @@
     
         var region = options.region || view.region,
             viewName = options.name || view.cid,
-            $container = this.$(region)[0] ? this.$(region) : this.$el,
-            addMethod = options.replace ? 'prepend' : 'append';
+            $container = this.$(region)[0] ? this.$(region) : this.$el;
     
         if (options.render) {
             view.render();
         }
     
     
-        $container[addMethod](view.$el);
+        $container[options.addMethod](view.$el);
     
         view.isAppended = true;
         view.trigger('appended');
@@ -620,6 +620,11 @@
         this.subview(viewName, view);
     };
     
+    Backbone.View.prototype.prepend = function (view, options) {
+        options = options || {};
+        options.addMethod = true;
+        this.append(view, options);
+    };
     /*global Backbone, _ */
     
     _.extend(Backbone.View.prototype, Backbone.decorators.PubSub, Backbone.decorators.RequestResponse, Backbone.decorators.Command);
