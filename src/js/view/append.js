@@ -1,7 +1,8 @@
 Backbone.View.prototype.append = function (view, options) {
     options = _.defaults(options || {}, {
         render: true,
-        prepend: false
+        replace: false,
+        addMethod: 'append'
     });
 
     if (!(view instanceof Backbone.View)) {
@@ -10,15 +11,14 @@ Backbone.View.prototype.append = function (view, options) {
 
     var region = options.region || view.region,
         viewName = options.name || view.cid,
-        $container = this.$(region)[0] ? this.$(region) : this.$el,
-        addMethod = options.replace ? 'prepend' : 'append';
+        $container = this.$(region)[0] ? this.$(region) : this.$el;
 
     if (options.render) {
         view.render();
     }
 
 
-    $container[addMethod](view.$el);
+    $container[options.addMethod](view.$el);
 
     view.isAppended = true;
     view.trigger('appended');
