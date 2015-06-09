@@ -622,7 +622,7 @@
     
     Backbone.View.prototype.prepend = function (view, options) {
         options = options || {};
-        options.addMethod = true;
+        options.addMethod = 'prepend';
         this.append(view, options);
     };
     /*global Backbone, _ */
