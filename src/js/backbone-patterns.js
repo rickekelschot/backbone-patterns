@@ -29,6 +29,7 @@
     // @include model/save.js
     // @include model/sync.js
     // @include model/abort.js
+    // @include router/execute.js
     // @include view/constructor.js
     // @include view/append.js
     // @include view/prepend.js
@@ -37,6 +38,7 @@
     // @include view/subscriptions.js
     // @include view/subview.js
     // @include view/remove.js
+    // @include view/dispose.js
 
     return Backbone;
 }));

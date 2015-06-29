@@ -573,6 +573,11 @@
             this.xhr.abort();
         }
     });
+    Backbone.Router.prototype.execute = function(callback, args) {
+        Backbone.history.trigger('pre-route', args);
+        if (callback) callback.apply(this, args);
+        Backbone.history.trigger('post-route', args);
+    };
     var oldProto = Backbone.View.prototype,
         extend = Backbone.View.extend,
         ctor = Backbone.View;
@@ -750,15 +755,30 @@
         _.invoke(this.subviews, 'remove');
         this.subviews = {};
     }
-    var oldRemove = Backbone.View.prototype.remove;
     Backbone.View.prototype.remove = (function () {
-        this.unSubscribeToEvents();
-        this.removeSubviews();
-        this.isAppended = false;
-        this.trigger('removed');
-        oldRemove.apply(this, arguments);
+        if (!this.disposed) {
+            this.unSubscribeToEvents();
+            this.removeSubviews();
+            this.isAppended = false;
+            this.trigger('removed');
+    
+            this.$el.remove();
+            this.stopListening();
+    
+            this.dispose();
+        }
     });
     
+    Backbone.View.prototype.dispose = (function () {
+        var dispose = _.keys(this);
+    
+        _.each(dispose, function (key) {
+            delete this[key];
+        }.bind(this));
+    
+        this.disposed = true;
+        Backbone.utils.readonly(this);
+    });
 
     return Backbone;
 }));

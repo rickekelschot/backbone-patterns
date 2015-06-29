@@ -1,8 +1,13 @@
-var oldRemove = Backbone.View.prototype.remove;
 Backbone.View.prototype.remove = (function () {
-    this.unSubscribeToEvents();
-    this.removeSubviews();
-    this.isAppended = false;
-    this.trigger('removed');
-    oldRemove.apply(this, arguments);
+    if (!this.disposed) {
+        this.unSubscribeToEvents();
+        this.removeSubviews();
+        this.isAppended = false;
+        this.trigger('removed');
+
+        this.$el.remove();
+        this.stopListening();
+
+        this.dispose();
+    }
 });
