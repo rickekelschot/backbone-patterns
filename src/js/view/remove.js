@@ -3,7 +3,7 @@ Backbone.View.prototype.remove = (function () {
         this.unSubscribeToEvents();
         this.removeSubviews();
         this.isAppended = false;
-        this.trigger('removed');
+        this.trigger('removed', this);
 
         this.$el.remove();
         this.stopListening();
