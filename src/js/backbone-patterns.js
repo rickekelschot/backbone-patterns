@@ -39,6 +39,7 @@
     // @include view/subview.js
     // @include view/remove.js
     // @include view/dispose.js
+    // @include class/class.js
 
     return Backbone;
 }));

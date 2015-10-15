@@ -611,7 +611,11 @@
     
         var region = options.region || view.region,
             viewName = options.name || view.cid,
+            $container = region;
+    
+        if (!(region instanceof jQuery)) {
             $container = this.$(region)[0] ? this.$(region) : this.$el;
+        }
     
         if (options.render) {
             view.render();
@@ -800,6 +804,13 @@
         this.disposed = true;
         Backbone.utils.readonly(this);
     });
+    Backbone.Class = function () {
+      this.initialize();
+    };
+    
+    Backbone.Class.prototype.initialize = function () {};
+    
+    Backbone.Class.extend = Backbone.View.extend;
 
     return Backbone;
 }));

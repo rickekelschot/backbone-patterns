@@ -11,7 +11,11 @@ Backbone.View.prototype.append = function (view, options) {
 
     var region = options.region || view.region,
         viewName = options.name || view.cid,
+        $container = region;
+
+    if (!(region instanceof jQuery)) {
         $container = this.$(region)[0] ? this.$(region) : this.$el;
+    }
 
     if (options.render) {
         view.render();
