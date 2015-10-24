@@ -29,8 +29,23 @@ We added some extra functions to the default Backbone.View, making it more robus
 - [Backbone.View](#backboneview)
   - [append](#append)
   - [channel](#channel)
+  - [optionNames](#channel)
   - [prepend](#prepend)
+  - [renderMethod](#rendermethod)
+  - [subscriptions](#subscriptions)
   - [template](#template)
+- [Backbone.Class](#backboneview)
+- [Backbone.Collection](#backboneview)
+  - [abort](#append)
+  - [fetch](#fetch)
+- [Backbone.Model](#backboneview)
+  - [abort](#append)
+  - [fetch](#fetch)
+  - [save](#fetch)
+- [Backbone.Router](#backboneview)
+  - [execute](#fetch)
+- [Backbone.mediator](#backboneview)
+  
     
  
 ## Backbone.View
@@ -98,14 +113,106 @@ Backbone.View.extend({
 - [Backbone.Radio.Commands](https://github.com/marionettejs/backbone.radio/tree/v0.9.0#backboneradiocommands)
 - [Backbone.Radio.Requests](https://github.com/marionettejs/backbone.radio/blob/master/README.md#requests)
 
+### optionNames (Array)
+An array with keys representing variables that will be picked from the instantiation object and added to view.
+
+```js
+var MyView = Backbone.View.extend({
+    optionNames: ['myVar']
+});
+var view = new MyView({
+    myVar: 'test'
+});
+view.myVar; //test
+```
+
 ### prepend(view [, options])
 Similar to [append()](#append) but prepends instead of appending. See [append()](#append) for more info.
 
-### template
-The template which needs to be rendered by the view. 
+### renderMethod (String)
+*Default is append* You can overwrite the method used to append the template.
+
+
+### subscriptions (Object)
+Like the Backbone events object, the subscriptions hash allows you to specify PubSub events in which you are interested.
+The listeners are automatically removed when removing the view.
+
+```js
+Backbone.View.extend({
+    subscriptions: {
+        "window": {
+            "resize": "handleResize"
+        }
+    },
+    handleResize: function (event) {}
+});
+``` 
+
+### template (Function)
+The template which needs to be rendered by the view. Because of the async nature of some templating libraries, a 'render-complete' 
+event is fired when the template is done rendering. The innerHTML of the template is added to the view. 
+
 
 ```js
 Backbone.View.extend({
     template: _.template("hello: <%= name %>")
 });
 ```
+
+## Backbone.Class
+Backbone.Class is a simple Backbone object providing you with Backbone's way of inheritance.
+
+```js
+Backbone.Class.extend({
+    initialize: function () {}
+});
+```
+
+## Backbone.Collection
+We have made a few tweaks to Backbone.Collection
+
+### abort()
+Cancel an ongoing XHR request
+
+### fetch([options])
+Fetch now returns a promise which is resolved with the collection as attribute. 
+
+```js
+var collection = new Backbone.Collection();
+collection.fetch().then(function (collection) {
+    console.log(collection);
+});
+collection.xhr; //Original XHR request
+```
+
+## Backbone.Model
+We have made a few tweaks to Backbone.Model
+
+### abort()
+Cancel an ongoing XHR request
+
+### fetch([options])
+Fetch now returns a promise which is resolved with the model as attribute. 
+
+```js
+var model = new Backbone.Model();
+model.fetch().then(function (model) {
+    console.log(model);
+});
+model.xhr; //Original XHR request
+```
+
+### save(key, [val, options])
+Save now returns a promise which is resolved with the model as attribute. 
+
+```js
+var model = new Backbone.Model();
+model.save({key: 'value'}).then(function (model) {
+    console.log(model);
+});
+model.xhr; //Original XHR request
+```
+
+## Backbone.Router
+### execute(callback[, args])
+We've added two events 'pre-route' & 'post-route'
