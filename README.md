@@ -159,7 +159,8 @@ event is fired when the template is done rendering. The innerHTML of the templat
 
 ```js
 Backbone.View.extend({
-    template: _.template("hello: <%= name %>")
+    template: _.template("hello: <%= name %>"),
+    renderMethod: 'append'
 });
 ```
 
