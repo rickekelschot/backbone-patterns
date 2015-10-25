@@ -598,6 +598,29 @@
     Backbone.View.prototype = oldProto;
     Backbone.View.extend = extend;
     
+    /**
+     * Renders and appends the passed View to the Views element. The appended views is also registered as a subview.
+     * Triggers a 'appended' event on the subview.
+     *
+     * <code>
+     * Backbone.View.extend({
+     *   render: function () {
+     *       this.append(new SubView(), {
+     *           region: '.my-region',
+     *           render: true,
+     *           replace: true,
+     *           name: 'my-subview',
+     *           addMethod: 'append'
+     *       });
+     *   }
+     * });
+     * </code>
+     *
+     * @param view {Backbone.View} The view to append this view
+     * @param options {Object} Optional options object
+     * @url https://github.com/rickekelschot/backbone-patterns/blob/master/README.md#appendview--options
+     */
+    
     Backbone.View.prototype.append = function (view, options) {
         options = _.defaults(options || {}, {
             render: true,
@@ -808,7 +831,7 @@
       options = options || {};
     
       _.extend(this, _.pick(options, this.optionNames || {}));
-      
+    
       this.initialize.apply(this, arguments);
     };
     

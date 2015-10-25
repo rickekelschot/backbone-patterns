@@ -45,6 +45,10 @@ We added some extra functions to the default Backbone.View, making it more robus
 - [Backbone.Router](#backboneview)
   - [execute](#fetch)
 - [Backbone.mediator](#backboneview)
+- [Backbone.decorators](#backboneview)
+  - [Backbone.decorators.Command](#backboneview)
+  - [Backbone.decorators.PubSub](#backboneview)
+  - [Backbone.decorators.RequestResponse](#backboneview)
   
     
  
@@ -216,3 +220,32 @@ model.xhr; //Original XHR request
 ## Backbone.Router
 ### execute(callback[, args])
 We've added two events 'pre-route' & 'post-route'
+
+## Backbone.mediator
+### channel(name)
+Returns a [Backbone.Radio.Channel](https://github.com/marionettejs/backbone.radio/tree/v0.9.0#channels)
+
+```js
+Backbone.mediator.channel('my-channel').request('user');
+```
+
+## Backbone.decorators
+With these decorators you can extend every object with PubSub, Command & Request/Response pattern. 
+
+### Backbone.decorators.Command
+```js
+var obj = {};
+_.extend(obj, Backbone.decorators.Command);
+```
+
+### Backbone.decorators.PubSub
+```js
+var obj = {};
+_.extend(obj, Backbone.decorators.PubSub);
+```
+
+### Backbone.decorators.RequestResponse
+```js
+var obj = {};
+_.extend(obj, Backbone.decorators.RequestResponse);
+```
