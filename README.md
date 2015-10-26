@@ -1,5 +1,5 @@
-# Backbone.Supercharged
-Backbone.Supercharged is a library intended to supercharge your Backbone application. This is a library and not a framework, 
+# Backbone.Supercharger
+Backbone.Supercharger is a library intended to supercharge your Backbone application. This is a library and not a framework, 
 it will not provide code structuring of any kind.
  
 ## What does it do?
@@ -9,7 +9,7 @@ it will not provide code structuring of any kind.
 - [Supercharged Backbone.View's](#superchargedbackboneviews)
 
 ## Backbone.Radio
-Backbone.Supercharged utilizes Backbone.Radio from the MarionetteJS team. [Backbone.Radio documentation](https://github.com/marionettejs/backbone.radio)
+Backbone.Supercharger utilizes Backbone.Radio from the MarionetteJS team. [Backbone.Radio documentation](https://github.com/marionettejs/backbone.radio)
 
 ## View lifecycle management
 With plain 'ol Backbone managing your views is something you need to handle yourself. Leaving views "dangling" might cause
@@ -20,7 +20,7 @@ We also improved the remove function. All the references stored inside a View ar
 
 ## Command, PubSub & Request/Reply
 Design patterns are the heart of every well written application. The Command, PubSub & Request/Reply patterns are deeply 
-integrated within Backbone.Supercharged. See the API section for more information
+integrated within Backbone.Supercharger. See the API section for more information
 
 ## Supercharged Backbone.Views
 We added some extra functions to the default Backbone.View, making it more robust and easier to use in larger projects.
