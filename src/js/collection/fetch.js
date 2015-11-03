@@ -4,12 +4,19 @@ Backbone.Collection.prototype.fetch = (function (options) {
     if (options.success || options.error || !Backbone.$) {
         return oldCollectionFetch.call(this, options);
     }
-
+    
     var promise = Backbone.$.Deferred();
-    options.success = promise.resolve;
-    options.error = promise.reject;
+    this.once('sync', promise.resolve);
+    this.once('error', promise.reject);
 
-    this.xhr = oldCollectionFetch.call(this, options);
+    if (!this.isFetching) {
+        options.success = options.error = function () {
+            this.isFetching = false;
+        }.bind(this);
+
+        this.isFetching = true;
+        this.xhr = oldCollectionFetch.call(this, options);
+    }
 
     return promise;
 });

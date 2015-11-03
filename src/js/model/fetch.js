@@ -6,11 +6,17 @@ Backbone.Model.prototype.fetch = (function (options) {
     }
 
     var promise = Backbone.$.Deferred();
-    options.success = promise.resolve;
-    options.error = promise.reject;
+    this.once('sync', promise.resolve);
+    this.once('error', promise.reject);
 
-    this.xhr = oldFetch.call(this, options);
+    if (!this.isFetching) {
+        options.success = options.error = function () {
+            this.isFetching = false;
+        }.bind(this);
+
+        this.isFetching = true;
+        this.xhr = oldFetch.call(this, options);
+    }
 
     return promise;
 });
-
