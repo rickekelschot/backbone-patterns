@@ -15,11 +15,14 @@
 }(this, function (Backbone, _) {
     'use strict';
 
+    import _ from 'underscore';
+    import Backbone from 'backbone';
+    
     var previousRadio = Backbone.Radio;
     
     var Radio = Backbone.Radio = {};
     
-    Radio.VERSION = '0.9.0';
+    Radio.VERSION = '0.9.1';
     
     // This allows you to run multiple instances of Radio on the same
     // webapp. After loading the new version, call `noConflict()` to
@@ -420,6 +423,8 @@
       _.invoke(channels, 'reset');
     };
     
+    export default Radio;
+    
     Backbone.Radio.Channel.prototype.subscribe = Backbone.Radio.Channel.prototype.on;
     Backbone.Radio.Channel.prototype.subscribeOnce = Backbone.Radio.Channel.prototype.once;
     Backbone.Radio.Channel.prototype.unsubscribe = Backbone.Radio.Channel.prototype.off;
@@ -510,11 +515,32 @@
             return oldCollectionFetch.call(this, options);
         }
     
-        var promise = Backbone.$.Deferred();
-        options.success = promise.resolve;
-        options.error = promise.reject;
+        var promise = Backbone.$.Deferred(),
+            resolve, reject;
     
-        this.xhr = oldCollectionFetch.call(this, options);
+        resolve = function () {
+            this.off('sync', resolve);
+            this.off('error', reject);
+            promise.resolve();
+        };
+    
+        reject = function () {
+            this.off('sync', resolve);
+            this.off('error', reject);
+            promise.reject();
+        };
+    
+        this.once('sync', resolve.bind(this));
+        this.once('error', reject.bind(this));
+    
+        if (!this.isFetching) {
+            options.success = options.error = function () {
+                this.isFetching = false;
+            }.bind(this);
+    
+            this.isFetching = true;
+            this.xhr = oldCollectionFetch.call(this, options);
+        }
     
         return promise;
     });
@@ -536,16 +562,35 @@
             return oldFetch.call(this, options);
         }
     
-        var promise = Backbone.$.Deferred();
-        options.success = promise.resolve;
-        options.error = promise.reject;
+        var promise = Backbone.$.Deferred(),
+            resolve, reject;
     
-        this.xhr = oldFetch.call(this, options);
+        resolve = function () {
+            this.off('sync', resolve);
+            this.off('error', reject);
+            promise.resolve();
+        };
+    
+        reject = function () {
+            this.off('sync', resolve);
+            this.off('error', reject);
+            promise.reject();
+        };
+    
+        this.once('sync', resolve.bind(this));
+        this.once('error', reject.bind(this));
+    
+        if (!this.isFetching) {
+            options.success = options.error = function () {
+                this.isFetching = false;
+            }.bind(this);
+    
+            this.isFetching = true;
+            this.xhr = oldFetch.call(this, options);
+        }
     
         return promise;
     });
-    
-    
     var oldSave = Backbone.Model.prototype.save;
     Backbone.Model.prototype.save = (function (key, val, options) {
         options = options || {};

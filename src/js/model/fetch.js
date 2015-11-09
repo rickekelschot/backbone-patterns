@@ -5,12 +5,32 @@ Backbone.Model.prototype.fetch = (function (options) {
         return oldFetch.call(this, options);
     }
 
-    var promise = Backbone.$.Deferred();
-    options.success = promise.resolve;
-    options.error = promise.reject;
+    var promise = Backbone.$.Deferred(),
+        resolve, reject;
 
-    this.xhr = oldFetch.call(this, options);
+    resolve = function () {
+        this.off('sync', resolve);
+        this.off('error', reject);
+        promise.resolve();
+    };
+
+    reject = function () {
+        this.off('sync', resolve);
+        this.off('error', reject);
+        promise.reject();
+    };
+
+    this.once('sync', resolve.bind(this));
+    this.once('error', reject.bind(this));
+
+    if (!this.isFetching) {
+        options.success = options.error = function () {
+            this.isFetching = false;
+        }.bind(this);
+
+        this.isFetching = true;
+        this.xhr = oldFetch.call(this, options);
+    }
 
     return promise;
 });
-
