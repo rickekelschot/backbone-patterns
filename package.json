@@ -1,12 +1,12 @@
 {
     "name": "backbone-patterns",
-    "version": "0.0.4",
+    "version": "1.0.11",
     "type": "git",
     "url": "https://github.com/rickekelschot/backbone-patterns",
-	"repository": {
-		"type": "git",
-		"url": "git://github.com/rickekelschot/backbone-patterns.git"
-	},
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/rickekelschot/backbone-patterns.git"
+    },
     "devDependencies": {
         "grunt": "~0.4.4",
         "time-grunt": "0.4.0",
