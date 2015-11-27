@@ -1,6 +1,6 @@
 {
   "name": "backbone-patterns",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "main": "dist/backbone-patterns.js",
   "private": true,
   "dependencies": {
@@ -8,7 +8,7 @@
     "underscore": ">=1.5.0"
   },
   "devDependencies": {
-    "backbone.radio": "~0.9.0"
+    "backbone.radio": "0.9.0"
   },
   "ignore": [
     "src",
