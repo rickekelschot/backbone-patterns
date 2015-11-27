@@ -15,14 +15,11 @@
 }(this, function (Backbone, _) {
     'use strict';
 
-    import _ from 'underscore';
-    import Backbone from 'backbone';
-    
     var previousRadio = Backbone.Radio;
     
     var Radio = Backbone.Radio = {};
     
-    Radio.VERSION = '0.9.1';
+    Radio.VERSION = '0.9.0';
     
     // This allows you to run multiple instances of Radio on the same
     // webapp. After loading the new version, call `noConflict()` to
@@ -422,8 +419,6 @@
       var channels = !channelName ? this._channels : [this._channels[channelName]];
       _.invoke(channels, 'reset');
     };
-    
-    export default Radio;
     
     Backbone.Radio.Channel.prototype.subscribe = Backbone.Radio.Channel.prototype.on;
     Backbone.Radio.Channel.prototype.subscribeOnce = Backbone.Radio.Channel.prototype.once;
