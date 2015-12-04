@@ -516,13 +516,13 @@
         resolve = function () {
             this.off('sync', resolve);
             this.off('error', reject);
-            promise.resolve();
+            promise.resolve.apply(this, arguments);
         };
     
         reject = function () {
             this.off('sync', resolve);
             this.off('error', reject);
-            promise.reject();
+            promise.reject.apply(this, arguments);
         };
     
         this.once('sync', resolve.bind(this));
@@ -563,13 +563,13 @@
         resolve = function () {
             this.off('sync', resolve);
             this.off('error', reject);
-            promise.resolve();
+            promise.resolve.apply(this, arguments);
         };
     
         reject = function () {
             this.off('sync', resolve);
             this.off('error', reject);
-            promise.reject();
+            promise.reject.apply(this, arguments);
         };
     
         this.once('sync', resolve.bind(this));
