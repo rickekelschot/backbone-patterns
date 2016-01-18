@@ -622,18 +622,32 @@
         Backbone.history.trigger('post-route', args);
         this.trigger('post-route', args);
     };
-    var oldCtor = Backbone.View.prototype.constructor;
+    var oldCtor = Backbone.View.prototype.constructor,
+        createClassName = function (persistentClassName, className) {
+            var combindedClassName = '';
+            combindedClassName += persistentClassName || '';
+            combindedClassName += ' ';
+            combindedClassName += className || '';
+    
+            //trim leading & trailing spaces
+            return combindedClassName.replace(/^\s+|\s+$/g, '');
+        };
+    
     Backbone.View = Backbone.View.extend({
-       constructor: function (options) {
-           options || (options = {});
-           var optionNames = ['region', 'regions', 'name'].concat(this.optionNames || []);
-           ​_.extend(this, _​.pick(options, optionNames));
+        constructor: function (options) {
+            options || (options = {});
+            //We also pick model & collection here because it can be used in className functions
+            var optionNames = ['region', 'regions', 'name', 'persistentClassName', 'model', 'collection'].concat(this.optionNames || []);
     
-           this.subscribeToEvents();
-           this.isAppended = false;
+            _.extend(this, _.pick(options, optionNames));
     
-           oldCtor.call(this, options);
-       }
+            this.subscribeToEvents();
+            this.isAppended = false;
+    
+            options.className = createClassName(_.result(this, 'persistentClassName'), _.result(options, 'className') || _.result(this, 'className'));
+    
+            oldCtor.call(this, options);
+        }
     });
     /**
      * Renders and appends the passed View to the Views element. The appended views is also registered as a subview.

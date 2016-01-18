@@ -30,6 +30,7 @@ We added some extra functions to the default Backbone.View, making it more robus
   - [append](#appendview--options)
   - [channel](#channelname)
   - [optionNames](#optionnames-array)
+  - [persistentClassName](#persistentclassname)
   - [prepend](#prependview--options)
   - [renderMethod](#rendermethod-string)
   - [subscriptions](#subscriptions-object)
@@ -128,6 +129,20 @@ var view = new MyView({
     myVar: 'test'
 });
 view.myVar; //test
+```
+
+### persistentClassName
+A string or a function (returning a string) which represents a className which should always be added to your view. 
+
+```js
+var MyView = Backbone.View.extend({
+    persistentClassName: 'fixed-class',
+    className: 'blue'
+});
+var view = new MyView({
+    className: 'red'
+});
+view.el.className; //fixed-class red
 ```
 
 ### prepend(view [, options])
