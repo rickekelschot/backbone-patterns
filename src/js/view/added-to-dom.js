@@ -6,7 +6,7 @@ Backbone.View.prototype.addedToDOM = function () {
     this.isAddedToDOM = true;
 
     _.each(this.subviews, function (subview) {
-        if (subview.hasOwnProperty('addedToDOM')) {
+        if (typeof subview.addedToDOM === 'function') {
             subview.addedToDOM();
         }
     });

@@ -622,38 +622,32 @@
         Backbone.history.trigger('post-route', args);
         this.trigger('post-route', args);
     };
-    var oldCtor = Backbone.View.prototype.constructor,
-        createClassName = function (persistentClassName, className) {
-            var combindedClassName = '';
-            combindedClassName += persistentClassName || '';
-            combindedClassName += ' ';
-            combindedClassName += className || '';
-    
-            //trim leading & trailing spaces
-            return combindedClassName.replace(/^\s+|\s+$/g, '');
-        };
+    var oldCtor = Backbone.View.prototype.constructor;
     
     Backbone.View = Backbone.View.extend({
         constructor: function (options) {
             options || (options = {});
             //We also pick model & collection here because it can be used in className functions
-            var optionNames = ['region', 'regions', 'name', 'persistentClassName', 'model', 'collection'].concat(this.optionNames || []);
+            var optionNames = ['region', 'regions', 'name', 'persistentClassName', 'model', 'collection', 'className'].concat(this.optionNames || []);
     
             _.extend(this, _.pick(options, optionNames));
     
             this.subscribeToEvents();
             this.isAppended = false;
-    
-            options.className = createClassName(_.result(this, 'persistentClassName'), _.result(options, 'className') || _.result(this, 'className'));
+            this.isAddedToDOM = false;
     
             oldCtor.call(this, options);
         }
     });
+    /**
+     * Triggers a 'added-to-dom' event on it's children and on itself.
+     * All subviews added after this view is added to DOM, will also have the addedToDOM function called.
+     */
     Backbone.View.prototype.addedToDOM = function () {
         this.isAddedToDOM = true;
     
         _.each(this.subviews, function (subview) {
-            if (subview.hasOwnProperty('addedToDOM')) {
+            if (typeof subview.addedToDOM === 'function') {
                 subview.addedToDOM();
             }
         });
@@ -790,6 +784,15 @@
         return null;
     });
     
+    var oldSetAttributes = Backbone.View.prototype._setAttributes;
+    Backbone.View.prototype._setAttributes = function(attributes) {
+        if (this.persistentClassName) {
+            attributes.class = attributes.class || '';
+            attributes.class = (this.persistentClassName + ' ' + attributes.class).replace(/^\s+|\s+$/g, '');
+        }
+    
+        oldSetAttributes.call(this, attributes);
+    };
     Backbone.View.prototype.parseSubscriptions = (function (doSubscribe) {
         if (typeof this.subscriptions !== 'undefined') {
             _.each(this.subscriptions, function (events, channel) {

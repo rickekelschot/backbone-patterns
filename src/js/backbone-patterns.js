@@ -36,6 +36,7 @@
     // @include view/prepend.js
     // @include view/pubsub.js
     // @include view/render.js
+    // @include view/set-attributes.js
     // @include view/subscriptions.js
     // @include view/subview.js
     // @include view/remove.js
