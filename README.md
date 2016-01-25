@@ -60,9 +60,11 @@ Triggers a 'added-to-dom' event on it's children and on itself. A 'removed-from-
 All subviews added after this view is added to DOM, will also have the addedToDOM function called.
 ```js
 var mainView = new Backbone.View(),
-subview = new Backbone.View();
+    subview = new Backbone.View();
+    
 mainView.addedToDOM();
 mainView.append(subview);
+
 mainView.isAddedToDOM; //true
 subview.isAddedToDOM; //true
 ```
