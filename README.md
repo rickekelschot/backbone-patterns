@@ -27,7 +27,7 @@ We added some extra functions to the default Backbone.View, making it more robus
 
 ## API
 - [Backbone.View](#backboneview)
-  - [addedToDOM](#addedToDOM)
+  - [addedToDOM](#addedtodom)
   - [append](#appendview--options)
   - [channel](#channelname)
   - [optionNames](#optionnames-array)
