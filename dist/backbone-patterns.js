@@ -649,6 +649,18 @@
             oldCtor.call(this, options);
         }
     });
+    Backbone.View.prototype.addedToDOM = function () {
+        this.isAddedToDOM = true;
+    
+        _.each(this.subviews, function (subview) {
+            if (subview.hasOwnProperty('addedToDOM')) {
+                subview.addedToDOM();
+            }
+        });
+    
+        this.trigger('added-to-dom');
+    };
+    
     /**
      * Renders and appends the passed View to the Views element. The appended views is also registered as a subview.
      * Triggers a 'appended' event on the subview.
@@ -700,6 +712,10 @@
     
         view.isAppended = true;
         view.trigger('appended');
+    
+        if (this.isAddedToDOM) {
+            view.addedToDOM();
+        }
     
         if (options.replace && this.subview(viewName)) {
             this.removeSubview(viewName);
@@ -859,7 +875,9 @@
             this.unSubscribeToEvents();
             this.removeSubviews();
             this.isAppended = false;
+            this.isAddedToDOM = false;
             this.trigger('removed', this);
+            this.trigger('removed-from-dom', this);
     
             this.$el.remove();
             this.stopListening();

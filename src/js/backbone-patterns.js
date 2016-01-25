@@ -31,6 +31,7 @@
     // @include model/abort.js
     // @include router/execute.js
     // @include view/constructor.js
+    // @include view/added-to-dom.js
     // @include view/append.js
     // @include view/prepend.js
     // @include view/pubsub.js

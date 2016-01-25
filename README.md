@@ -27,6 +27,7 @@ We added some extra functions to the default Backbone.View, making it more robus
 
 ## API
 - [Backbone.View](#backboneview)
+  - [addedToDOM](#addedToDOM)
   - [append](#appendview--options)
   - [channel](#channelname)
   - [optionNames](#optionnames-array)
@@ -54,6 +55,18 @@ We added some extra functions to the default Backbone.View, making it more robus
     
  
 ## Backbone.View
+### addedToDOM()
+Triggers a 'added-to-dom' event on it's children and on itself. A 'removed-from-dom' event is fired upon remove. 
+All subviews added after this view is added to DOM, will also have the addedToDOM function called.
+```js
+var mainView = new Backbone.View(),
+subview = new Backbone.View();
+mainView.addedToDOM();
+mainView.append(subview);
+mainView.isAddedToDOM; //true
+subview.isAddedToDOM; //true
+```
+
 ### append(view [, options])
 Renders and appends the passed View to the Views element. The appended views is also registered as a subview.
 Triggers a 'appended' event on the subview.
