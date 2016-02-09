@@ -705,7 +705,7 @@
     Backbone.View.prototype.templateEngine = 'dust'; //dust
     
     Backbone.View.prototype.render = (function () {
-        if (typeof this.template !== 'function') {
+        if (this.templateEngine !== null && typeof this.template !== 'function') {
             throw Error('Template is not a function!');
         }
         var appendView = (function (element) {
@@ -746,7 +746,7 @@
                 }
                 appendView(out);
             });
-        } else {
+        } else if (this.templateEngine !== null) {
             appendView(this.template(this.getTemplateData()));
         }
     
