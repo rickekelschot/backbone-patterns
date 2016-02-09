@@ -705,9 +705,6 @@
     Backbone.View.prototype.templateEngine = 'dust'; //dust
     
     Backbone.View.prototype.render = (function () {
-        if (this.templateEngine !== null && typeof this.template !== 'function') {
-            throw Error('Template is not a function!');
-        }
         var appendView = (function (element) {
             var $oldEl;
             if (this.$el) {
@@ -739,17 +736,22 @@
             this.trigger('render-complete');
         }.bind(this));
     
-        if (this.templateEngine === 'dust') {
-            this.template(this.getTemplateData(), function (err, out) {
-                if (err) {
-                    console.error(err);
-                }
-                appendView(out);
-            });
-        } else if (this.templateEngine !== null) {
-            appendView(this.template(this.getTemplateData()));
-        }
-    
+    	if (typeof this.template !== 'undefined') {
+    	    if (typeof this.template !== 'function') {
+    	        throw Error('Template is not a function!');
+    	    }
+    	    if (this.templateEngine === 'dust') {
+    	        this.template(this.getTemplateData(), function (err, out) {
+    	            if (err) {
+    	                console.error(err);
+    	            }
+    	            appendView(out);
+    	        });
+    	    } else {
+    	        appendView(this.template(this.getTemplateData()));
+    	    }
+    	}
+    	
         return this;
     });
     
