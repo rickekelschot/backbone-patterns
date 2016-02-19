@@ -1,6 +1,6 @@
 {
   "name": "backbone-supercharger",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "main": "dist/backbone-supercharger.js",
   "private": false,
   "dependencies": {
