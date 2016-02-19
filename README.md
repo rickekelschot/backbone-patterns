@@ -124,24 +124,24 @@ Bubbles an event from the view to it's parents.
 
 ```js
 var ParentView = Backbone.View.extend({
-    initialize: function () {
-        this.listenTo(this, 'triggered-by-child', this.onTriggeredByChild);
-    },
+        initialize: function () {
+            this.listenTo(this, 'triggered-by-child', this.onTriggeredByChild);
+        },
     
-    onTriggeredByChild: function (value) {
-        console.log(value);
-    }
-}),
-ChildView = Backbone.View.extend({
-     initialize: function () {
-         this.listenTo(this, 'appended', this.triggerBubbleEvent);
-     },
+        onTriggeredByChild: function (value) {
+            console.log(value);
+        }
+    }),
+    ChildView = Backbone.View.extend({
+        initialize: function () {
+            this.listenTo(this, 'appended', this.triggerBubbleEvent);
+        },
      
-     triggerBubbleEvent: function () {
-         this.bubble('triggered-by-child', 'test');
-     }
-}),
-parent = new ParentView();
+        triggerBubbleEvent: function () {
+            this.bubble('triggered-by-child', 'test');
+        }
+    }),
+    parent = new ParentView();
 
 parent.append(new ChildView()); //output: test
 ```
@@ -159,12 +159,12 @@ var ChildView = Backbone.View.extend({
              console.log(value);
          }
     }), 
-ParentView = Backbone.View.extend({
-    initialize: function () {
-        this.append(new ChildView());
-        this.capture('triggered-by-parent', 'test');
-    }
-});
+    ParentView = Backbone.View.extend({
+        initialize: function () {
+            this.append(new ChildView());
+            this.capture('triggered-by-parent', 'test');
+        }
+    });
 
 new ParentView(); //output: test
 ```
