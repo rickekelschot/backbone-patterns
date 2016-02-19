@@ -29,6 +29,8 @@ We added some extra functions to the default Backbone.View, making it more robus
 - [Backbone.View](#backboneview)
   - [addedToDOM](#addedtodom)
   - [append](#appendview--options)
+  - [bubble](#bubblename)
+  - [capture](#capturename)
   - [channel](#channelname)
   - [optionNames](#optionnames-array)
   - [persistentClassName](#persistentclassname)
@@ -117,6 +119,55 @@ Passing true will overwrite (and remove) a already registered subview with the s
 *Default is 'append'*
 You can overwrite the method used to append the subview. 
 
+### bubble(name)
+Bubbles an event from the view to it's parents.
+
+```js
+var ParentView = Backbone.View.extend({
+    initialize: function () {
+        this.listenTo(this, 'triggered-by-child', this.onTriggeredByChild);
+    },
+    
+    onTriggeredByChild: function (value) {
+        console.log(value);
+    }
+}),
+ChildView = Backbone.View.extend({
+     initialize: function () {
+         this.listenTo(this, 'appended', this.triggerBubbleEvent);
+     },
+     
+     triggerBubbleEvent: function () {
+         this.bubble('triggered-by-child', 'test');
+     }
+}),
+parent = new ParentView();
+
+parent.append(new ChildView()); //output: test
+```
+
+### capture(name)
+Capture an event from the view onto it's children.
+
+```js
+var ChildView = Backbone.View.extend({
+         initialize: function () {
+             this.listenTo(this, 'triggered-by-parent', this.onTriggeredByParent);
+         },
+         
+         onTriggeredByParent: function (value) {
+             console.log(value);
+         }
+    }), 
+ParentView = Backbone.View.extend({
+    initialize: function () {
+        this.append(new ChildView());
+        this.capture('triggered-by-parent', 'test');
+    }
+});
+
+new ParentView(); //output: test
+```
 
 ### channel(name)
 Returns a [Backbone.Radio.Channel](https://github.com/marionettejs/backbone.radio/tree/v0.9.0#channels)

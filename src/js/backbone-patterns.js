@@ -33,6 +33,8 @@
     // @include view/constructor.js
     // @include view/added-to-dom.js
     // @include view/append.js
+    // @include view/bubble.js
+    // @include view/capture.js
     // @include view/prepend.js
     // @include view/pubsub.js
     // @include view/render.js
