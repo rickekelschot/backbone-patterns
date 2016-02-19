@@ -38,9 +38,9 @@ module.exports = function (grunt) {
         },
 
         preprocess: {
-            patterns: {
-                src: 'src/js/backbone-patterns.js',
-                dest: 'dist/backbone-patterns.js'
+            supercharger: {
+                src: 'src/js/backbone-supercharger.js',
+                dest: 'dist/backbone-supercharger.js'
             }
         },
 
@@ -56,9 +56,9 @@ module.exports = function (grunt) {
                     version: '<%= meta.version %>'
                 }
             },
-            patterns: {
-                src: '<%= preprocess.patterns.dest %>',
-                dest: '<%= preprocess.patterns.dest %>'
+            supercharger: {
+                src: '<%= preprocess.supercharger.dest %>',
+                dest: '<%= preprocess.supercharger.dest %>'
             }
         }
 

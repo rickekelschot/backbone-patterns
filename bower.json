@@ -1,7 +1,7 @@
 {
-  "name": "backbone-patterns",
+  "name": "backbone-supercharger",
   "version": "1.0.19",
-  "main": "dist/backbone-patterns.js",
+  "main": "dist/backbone-supercharger.js",
   "private": true,
   "dependencies": {
     "backbone": ">=1.2.3",

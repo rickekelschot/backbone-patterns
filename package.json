@@ -1,11 +1,11 @@
 {
-    "name": "backbone-patterns",
+    "name": "backbone-supercharger",
     "version": "1.0.19",
     "type": "git",
-    "url": "https://github.com/rickekelschot/backbone-patterns",
+    "url": "https://github.com/rickekelschot/backbone-supercharger",
     "repository": {
         "type": "git",
-        "url": "git://github.com/rickekelschot/backbone-patterns.git"
+        "url": "git://github.com/rickekelschot/backbone-supercharger.git"
     },
     "devDependencies": {
         "grunt": "~0.4.4",
