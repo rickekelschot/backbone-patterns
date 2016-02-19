@@ -808,6 +808,8 @@
     	    } else {
     	        appendView(this.template(this.getTemplateData()));
     	    }
+    	} else {
+    		this.trigger('render-complete');
     	}
     	
         return this;
