@@ -31,10 +31,14 @@
     // @include model/abort.js
     // @include router/execute.js
     // @include view/constructor.js
+    // @include view/added-to-dom.js
     // @include view/append.js
+    // @include view/bubble.js
+    // @include view/capture.js
     // @include view/prepend.js
     // @include view/pubsub.js
     // @include view/render.js
+    // @include view/set-attributes.js
     // @include view/subscriptions.js
     // @include view/subview.js
     // @include view/remove.js

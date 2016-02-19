@@ -27,9 +27,13 @@ We added some extra functions to the default Backbone.View, making it more robus
 
 ## API
 - [Backbone.View](#backboneview)
+  - [addedToDOM](#addedtodom)
   - [append](#appendview--options)
+  - [bubble](#bubblename)
+  - [capture](#capturename)
   - [channel](#channelname)
   - [optionNames](#optionnames-array)
+  - [persistentClassName](#persistentclassname)
   - [prepend](#prependview--options)
   - [renderMethod](#rendermethod-string)
   - [subscriptions](#subscriptions-object)
@@ -53,6 +57,20 @@ We added some extra functions to the default Backbone.View, making it more robus
     
  
 ## Backbone.View
+### addedToDOM()
+Triggers a 'added-to-dom' event on it's children and on itself. A 'removed-from-dom' event is fired upon remove. 
+All subviews added after this view is added to DOM, will also have the addedToDOM function called.
+```js
+var mainView = new Backbone.View(),
+    subview = new Backbone.View();
+    
+mainView.addedToDOM();
+mainView.append(subview);
+
+mainView.isAddedToDOM; //true
+subview.isAddedToDOM; //true
+```
+
 ### append(view [, options])
 Renders and appends the passed View to the Views element. The appended views is also registered as a subview.
 Triggers a 'appended' event on the subview.
@@ -101,6 +119,55 @@ Passing true will overwrite (and remove) a already registered subview with the s
 *Default is 'append'*
 You can overwrite the method used to append the subview. 
 
+### bubble(name)
+Bubbles an event from the view to it's parents.
+
+```js
+var ParentView = Backbone.View.extend({
+        initialize: function () {
+            this.listenTo(this, 'triggered-by-child', this.onTriggeredByChild);
+        },
+    
+        onTriggeredByChild: function (value) {
+            console.log(value);
+        }
+    }),
+    ChildView = Backbone.View.extend({
+        initialize: function () {
+            this.listenTo(this, 'appended', this.triggerBubbleEvent);
+        },
+     
+        triggerBubbleEvent: function () {
+            this.bubble('triggered-by-child', 'test');
+        }
+    }),
+    parent = new ParentView();
+
+parent.append(new ChildView()); //output: test
+```
+
+### capture(name)
+Capture an event from the view onto it's children.
+
+```js
+var ChildView = Backbone.View.extend({
+         initialize: function () {
+             this.listenTo(this, 'triggered-by-parent', this.onTriggeredByParent);
+         },
+         
+         onTriggeredByParent: function (value) {
+             console.log(value);
+         }
+    }), 
+    ParentView = Backbone.View.extend({
+        initialize: function () {
+            this.append(new ChildView());
+            this.capture('triggered-by-parent', 'test');
+        }
+    });
+
+new ParentView(); //output: test
+```
 
 ### channel(name)
 Returns a [Backbone.Radio.Channel](https://github.com/marionettejs/backbone.radio/tree/v0.9.0#channels)
@@ -128,6 +195,20 @@ var view = new MyView({
     myVar: 'test'
 });
 view.myVar; //test
+```
+
+### persistentClassName
+A string or a function (returning a string) which represents a className which should always be added to your view. 
+
+```js
+var MyView = Backbone.View.extend({
+    persistentClassName: 'fixed-class',
+    className: 'blue'
+});
+var view = new MyView({
+    className: 'red'
+});
+view.el.className; //fixed-class red
 ```
 
 ### prepend(view [, options])

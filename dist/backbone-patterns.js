@@ -623,18 +623,44 @@
         this.trigger('post-route', args);
     };
     var oldCtor = Backbone.View.prototype.constructor;
+    
     Backbone.View = Backbone.View.extend({
-       constructor: function (options) {
-           options || (options = {});
-           var optionNames = ['region', 'regions', 'name'].concat(this.optionNames || []);
-           ​_.extend(this, _​.pick(options, optionNames));
+        constructor: function (options) {
+            var optionNames = ['region', 'regions', 'name', 'persistentClassName', 'isAddedToDOM'].concat(this.optionNames || []);
     
-           this.subscribeToEvents();
-           this.isAppended = false;
+            options || (options = {});
     
-           oldCtor.call(this, options);
-       }
+            _.extend(this, _.pick(options, optionNames));
+            _.defaults(this, {
+                isAppended: false,
+                isAddedToDOM: false
+            });
+    
+            this.subscribeToEvents();
+    
+            if (this.isAddedToDOM) {
+                this.addedToDOM();
+            }
+    
+            oldCtor.call(this, options);
+        }
     });
+    /**
+     * Triggers a 'added-to-dom' event on it's children and on itself.
+     * All subviews added after this view is added to DOM, will also have the addedToDOM function called.
+     */
+    Backbone.View.prototype.addedToDOM = function () {
+        this.isAddedToDOM = true;
+    
+        _.each(this.subviews, function (subview) {
+            if (typeof subview.addedToDOM === 'function') {
+                subview.addedToDOM();
+            }
+        });
+    
+        this.trigger('added-to-dom');
+    };
+    
     /**
      * Renders and appends the passed View to the Views element. The appended views is also registered as a subview.
      * Triggers a 'appended' event on the subview.
@@ -686,6 +712,10 @@
     
         view.isAppended = true;
         view.trigger('appended');
+    
+        if (this.isAddedToDOM) {
+            view.addedToDOM();
+        }
     
         if (options.replace && this.subview(viewName)) {
             this.removeSubview(viewName);
@@ -764,6 +794,15 @@
         return null;
     });
     
+    var oldSetAttributes = Backbone.View.prototype._setAttributes;
+    Backbone.View.prototype._setAttributes = function(attributes) {
+        if (this.persistentClassName) {
+            attributes.class = attributes.class || '';
+            attributes.class = (this.persistentClassName + ' ' + attributes.class).replace(/^\s+|\s+$/g, '');
+        }
+    
+        oldSetAttributes.call(this, attributes);
+    };
     Backbone.View.prototype.parseSubscriptions = (function (doSubscribe) {
         if (typeof this.subscriptions !== 'undefined') {
             _.each(this.subscriptions, function (events, channel) {
@@ -849,7 +888,9 @@
             this.unSubscribeToEvents();
             this.removeSubviews();
             this.isAppended = false;
+            this.isAddedToDOM = false;
             this.trigger('removed', this);
+            this.trigger('removed-from-dom', this);
     
             this.$el.remove();
             this.stopListening();

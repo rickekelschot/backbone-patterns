@@ -1,13 +1,23 @@
 var oldCtor = Backbone.View.prototype.constructor;
+
 Backbone.View = Backbone.View.extend({
-   constructor: function (options) {
-       options || (options = {});
-       var optionNames = ['region', 'regions', 'name'].concat(this.optionNames || []);
-       ​_.extend(this, _​.pick(options, optionNames));
+    constructor: function (options) {
+        var optionNames = ['region', 'regions', 'name', 'persistentClassName', 'isAddedToDOM'].concat(this.optionNames || []);
 
-       this.subscribeToEvents();
-       this.isAppended = false;
+        options || (options = {});
 
-       oldCtor.call(this, options);
-   }
+        _.extend(this, _.pick(options, optionNames));
+        _.defaults(this, {
+            isAppended: false,
+            isAddedToDOM: false
+        });
+
+        this.subscribeToEvents();
+
+        if (this.isAddedToDOM) {
+            this.addedToDOM();
+        }
+
+        oldCtor.call(this, options);
+    }
 });

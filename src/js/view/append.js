@@ -48,7 +48,12 @@ Backbone.View.prototype.append = function (view, options) {
     $container[options.addMethod](view.$el);
 
     view.isAppended = true;
+    view.parent = this;
     view.trigger('appended');
+
+    if (this.isAddedToDOM) {
+        view.addedToDOM();
+    }
 
     if (options.replace && this.subview(viewName)) {
         this.removeSubview(viewName);
