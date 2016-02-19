@@ -16,62 +16,38 @@
 
     (function () {
 
+        var ChildView = Backbone.View.extend({
+                    capture: {
+                        'triggered-by-parent': 'onTriggeredByParent'
+                    },
 
-        var View = Backbone.View.extend({
-            optionNames: ['test'],
-            subscriptions: {
-                'globalTest': 'handleGlobalTest',
-                'custom': {
-                    'customTest': 'handleCustomTest'
-                }
-            },
+                    onTriggeredByParent: function (value) {
+                        console.log(value);
+                        this.triggerBubble('triggered-by-child', 'child');
+                    }
+                }),
+                MiddleView = Backbone.View.extend({
+                    initialize: function () {
+                        this.append(new ChildView());
+                    }
+                }),
+                ParentView = Backbone.View.extend({
+                    bubble: {
+                        'triggered-by-child': 'onTriggeredByChild'
+                    },
 
-            initialize: function () {
-                this.reply('log', function (a, b) {
-                    return 'hello ' + a + ' ' + b;
+                    initialize: function () {
+                        this.append(new MiddleView());
+                        this.triggerCapture('triggered-by-parent', 'parent');
+                    },
+
+                    onTriggeredByChild: function (value) {
+                        console.log(value);
+                    }
                 });
 
-                this.reply('default', function (a, b) {
-                    console.log('caught ' + a + ' ' + b);
-                });
-
-                this.channel('custom').reply('log', function (a, b) {
-                    return 'world ' + a + ' ' + b;
-                })
-
-                this.comply('jump', function () {
-                    console.log('I jumped');
-                });
-            },
-
-            handleGlobalTest: function (request) {
-                console.log(this.request(request, 'world', Math.random()));
-            },
-
-            handleCustomTest: function (request) {
-                console.log(this.channel('custom').request(request, 'hello', Math.random()));
-            }
-        });
-
-        var view = new View({
-            el: '.test',
-            test: 'lala'
-        });
-        Backbone.mediator.publish('globalTest', 'log');
-        Backbone.mediator.channel('custom').publish('customTest', 'log');
-        Backbone.mediator.command('jump');
-        Backbone.mediator.request('someUnhandledRequest', 'test');
-        view.remove();
-
-        var model = new Backbone.Model();
-        model.url = 'https://api.github.com/repos/vmg/redcarpet/issues';
-        model.fetch();
-        model.abort();
-
-        var collection = new Backbone.Collection();
-        collection.url = 'https://api.github.com/repos/vmg/redcarpet/issues';
-        collection.fetch();
-        collection.abort();
+        var parent = new ParentView(); //output: test
+        parent.remove();
 
     })();
 

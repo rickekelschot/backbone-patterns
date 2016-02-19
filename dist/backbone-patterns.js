@@ -510,32 +510,11 @@
             return oldCollectionFetch.call(this, options);
         }
     
-        var promise = Backbone.$.Deferred(),
-            resolve, reject;
+        var promise = Backbone.$.Deferred();
+        options.success = promise.resolve;
+        options.error = promise.reject;
     
-        resolve = function () {
-            this.off('sync', resolve);
-            this.off('error', reject);
-            promise.resolve.apply(this, arguments);
-        };
-    
-        reject = function () {
-            this.off('sync', resolve);
-            this.off('error', reject);
-            promise.reject.apply(this, arguments);
-        };
-    
-        this.once('sync', resolve.bind(this));
-        this.once('error', reject.bind(this));
-    
-        if (!this.isFetching) {
-            options.success = options.error = function () {
-                this.isFetching = false;
-            }.bind(this);
-    
-            this.isFetching = true;
-            this.xhr = oldCollectionFetch.call(this, options);
-        }
+        this.xhr = oldCollectionFetch.call(this, options);
     
         return promise;
     });
@@ -557,32 +536,11 @@
             return oldFetch.call(this, options);
         }
     
-        var promise = Backbone.$.Deferred(),
-            resolve, reject;
+        var promise = Backbone.$.Deferred();
+        options.success = promise.resolve;
+        options.error = promise.reject;
     
-        resolve = function () {
-            this.off('sync', resolve);
-            this.off('error', reject);
-            promise.resolve.apply(this, arguments);
-        };
-    
-        reject = function () {
-            this.off('sync', resolve);
-            this.off('error', reject);
-            promise.reject.apply(this, arguments);
-        };
-    
-        this.once('sync', resolve.bind(this));
-        this.once('error', reject.bind(this));
-    
-        if (!this.isFetching) {
-            options.success = options.error = function () {
-                this.isFetching = false;
-            }.bind(this);
-    
-            this.isFetching = true;
-            this.xhr = oldFetch.call(this, options);
-        }
+        this.xhr = oldFetch.call(this, options);
     
         return promise;
     });
@@ -711,6 +669,7 @@
         $container[options.addMethod](view.$el);
     
         view.isAppended = true;
+        view.parent = this;
         view.trigger('appended');
     
         if (this.isAddedToDOM) {
@@ -721,6 +680,75 @@
             this.removeSubview(viewName);
         }
         this.subview(viewName, view);
+    };
+    
+    /**
+     * Helper util to delegate or undelegate View events
+     *
+     * @param events
+     * @param context
+     * @param remove
+     */
+    
+    var viewEventDelegation = function (events, context, remove) {
+        var action = remove ? 'stopListening' : 'listenTo';
+        for (var key in events) {
+            var method = events[key];
+    
+            if (!_.isFunction(method)) method = context[method];
+            if (!method) continue;
+            context[action](context, key, method);
+        }
+    };
+    
+    /**
+     * Delegate View events. These events are triggered by Backbone.Events API
+     * @param events
+     */
+    
+    Backbone.View.prototype.delegateViewEvents = function (events) {
+        if (!events) return this;
+        viewEventDelegation(events, this);
+        return this;
+    };
+    
+    /**
+     * Extend delegateEvents with bubble and capture event logic
+     * @param events
+     */
+    
+    var oldDelegateEvents = Backbone.View.prototype.delegateEvents;
+    Backbone.View.prototype.delegateEvents = function (events) {
+        oldDelegateEvents.call(this, events);
+    
+        this.delegateViewEvents(_.result(this, 'bubble'));
+        this.delegateViewEvents(_.result(this, 'capture'));
+    
+        return this;
+    };
+    
+    /**
+     * Delegate View events. These events are triggered by Backbone.Events API
+     * @param events
+     */
+    
+    Backbone.View.prototype.undelegateViewEvents = function (events) {
+        if (!events) return this;
+        viewEventDelegation(events, this, true);
+        return this;
+    };
+    
+    /**
+     * Extend delegateEvents with bubble and capture event logic
+     * @param events
+     */
+    
+    var oldUndelegateEvents = Backbone.View.prototype.undelegateEvents;
+    Backbone.View.prototype.undelegateEvents = function (events) {
+        oldUndelegateEvents.call(this, events);
+    
+        this.undelegateViewEvents(_.result(this, 'bubble'));
+        this.undelegateViewEvents(_.result(this, 'capture'));
     };
     
     Backbone.View.prototype.prepend = function (view, options) {
@@ -881,7 +909,8 @@
         _.invoke(this.subviews, 'remove');
         this.subviews = {};
     }
-    Backbone.View.prototype.remove = (function () {
+    var oldRemove = Backbone.View.prototype.remove;
+    Backbone.View.prototype.remove = function () {
         if (!this.disposed) {
             this.unSubscribeToEvents();
             this.removeSubviews();
@@ -895,7 +924,7 @@
     
             this.dispose();
         }
-    });
+    };
     
     Backbone.View.prototype.dispose = (function () {
         var dispose = _.keys(this);
@@ -907,6 +936,35 @@
         this.disposed = true;
         Backbone.utils.readonly(this);
     });
+    /**
+     * Bubbles an event from the view to it's parents
+     * @param name
+     */
+    
+    Backbone.View.prototype.triggerBubble = function (name) {
+        this.trigger.apply(this, arguments);
+    
+        if (this.parent instanceof Backbone.View && _.isFunction(this.parent.triggerBubble)) {
+            this.parent.triggerBubble.apply(this.parent, arguments);
+        }
+    };
+    
+    /**
+     * Capture an event from the view onto it's children
+     * @param name
+     */
+    
+    Backbone.View.prototype.triggerCapture = function (name) {
+        this.trigger.apply(this, arguments);
+    
+        for (var key in this.subviews) {
+            var subview = this.subviews[key];
+            if (_.isFunction(subview.triggerCapture)) {
+                subview.triggerCapture.apply(subview, arguments);
+            }
+        }
+    };
+    
     Backbone.Class = function (options) {
       options = options || {};
     

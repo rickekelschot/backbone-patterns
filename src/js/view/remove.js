@@ -1,4 +1,5 @@
-Backbone.View.prototype.remove = (function () {
+var oldRemove = Backbone.View.prototype.remove;
+Backbone.View.prototype.remove = function () {
     if (!this.disposed) {
         this.unSubscribeToEvents();
         this.removeSubviews();
@@ -12,4 +13,4 @@ Backbone.View.prototype.remove = (function () {
 
         this.dispose();
     }
-});
+};

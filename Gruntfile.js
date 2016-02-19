@@ -33,7 +33,7 @@ module.exports = function (grunt) {
             },
             js: {
                 files: ['src/js/**/*.js'],
-                tasks: ['concat:test']
+                tasks: ['build']
             }
         },
 
@@ -70,7 +70,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-preprocess');
     grunt.loadNpmTasks('grunt-template');
 
-    grunt.registerTask('default', ['concat:test', 'connect', 'watch']);
+    grunt.registerTask('default', ['build', 'connect', 'watch']);
     grunt.registerTask('build', ['preprocess', 'template']);
 
 };

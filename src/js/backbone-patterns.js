@@ -33,8 +33,11 @@
     // @include view/constructor.js
     // @include view/added-to-dom.js
     // @include view/append.js
-    // @include view/bubble.js
-    // @include view/capture.js
+    // @include view/helpers/view-event-delegation.js
+    // @include view/delegate-view-events.js
+    // @include view/delegate-events.js
+    // @include view/undelegate-view-events.js
+    // @include view/undelegate-events.js
     // @include view/prepend.js
     // @include view/pubsub.js
     // @include view/render.js
@@ -43,6 +46,8 @@
     // @include view/subview.js
     // @include view/remove.js
     // @include view/dispose.js
+    // @include view/trigger-bubble.js
+    // @include view/trigger-capture.js
     // @include class/class.js
 
     return Backbone;
