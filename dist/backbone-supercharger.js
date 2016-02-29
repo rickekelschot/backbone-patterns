@@ -866,13 +866,24 @@
     
     var oldSetAttributes = Backbone.View.prototype._setAttributes;
     Backbone.View.prototype._setAttributes = function(attributes) {
-        if (this.persistentClassName) {
-            attributes.class = attributes.class || '';
-            attributes.class = (this.persistentClassName + ' ' + attributes.class).replace(/^\s+|\s+$/g, '');
-        }
+        this.setClassName(attributes.class);
+        delete attributes.class;
     
         oldSetAttributes.call(this, attributes);
     };
+    /**
+     * Set the (combined) className on the element. Combines persistentClassName with className.
+     */
+    Backbone.View.prototype.setClassName = function (className) {
+        className = className || _.result(this, 'className');
+    
+        if (this.persistentClassName) {
+            className = this.persistentClassName + ' ' + className;
+        }
+    
+        this.el.className = className;
+    };
+    
     Backbone.View.prototype.parseSubscriptions = (function (doSubscribe) {
         if (typeof this.subscriptions !== 'undefined') {
             _.each(this.subscriptions, function (events, channel) {

@@ -34,6 +34,7 @@ We added some extra functions to the default Backbone.View, making it more robus
   - [persistentClassName](#persistentclassname)
   - [prepend](#prependview--options)
   - [renderMethod](#rendermethod-string)
+  - [setClassName](#setclassname-string)
   - [subscriptions](#subscriptions-object)
   - [template](#template-function)
   - [triggerBubble](#triggerbubblename)
@@ -181,7 +182,11 @@ Backbone.View.extend({
     },
     handleResize: function (event) {}
 });
-``` 
+```
+
+### setClassName (String)
+Set the (combined) className on the element. Combines persistentClassName with className. The className is param is optional.
+If you don't provide it, the views className (function) will be used.
 
 ### template (Function)
 The template which needs to be rendered by the view. Because of the async nature of some templating libraries, a 'render-complete' 
