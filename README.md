@@ -185,7 +185,7 @@ Backbone.View.extend({
 ```
 
 ### setClassName (String)
-Set the (combined) className on the element. Combines persistentClassName with className. The className is param is optional.
+Set the (combined) className on the element. Combines persistentClassName with className. The className param is optional.
 If you don't provide it, the views className (function) will be used.
 
 ### template (Function)
