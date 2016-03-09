@@ -6,6 +6,8 @@ Backbone.Class = function (options) {
   this.initialize.apply(this, arguments);
 };
 
+_.extend(Backbone.Class.prototype, Backbone.Events);
+
 Backbone.Class.prototype.initialize = function () {};
 
 Backbone.Class.extend = Backbone.View.extend;
