@@ -33,7 +33,7 @@ Backbone.View.prototype.render = (function () {
         this.trigger('render-complete');
     }.bind(this));
 
-	if (typeof this.template !== 'undefined') {
+	if (this.template) {
 	    if (typeof this.template !== 'function') {
 	        throw Error('Template is not a function!');
 	    }
