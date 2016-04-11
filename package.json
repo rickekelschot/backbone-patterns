@@ -8,7 +8,7 @@
     "url": "git://github.com/rickekelschot/backbone-supercharger.git"
   },
   "scripts" : {
-    "test" : "karma start --single-run"
+    "test" : "karma start --single-run --log-level=debug"
   },
   "devDependencies": {
     "grunt": "~0.4.4",
