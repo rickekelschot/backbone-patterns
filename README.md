@@ -2,6 +2,8 @@
 Backbone.Supercharger is a library intended to supercharge your Backbone application. This is a library and not a framework, 
 it will not provide code structuring of any kind.
  
+[![wercker status](https://app.wercker.com/status/492b7c38ad5193bcfac2797a6a59eb5e/m "wercker status")](https://app.wercker.com/project/bykey/492b7c38ad5193bcfac2797a6a59eb5e)
+ 
 ## What does it do?
 - [It provides messaging channels, courtesy of Backbone.Radio](#backboneradio)
 - [Handles view lifecycle management](#viewlifecyclemanagement)
