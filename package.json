@@ -23,6 +23,9 @@
     "karma-mocha": "0.2.2",
     "karma-phantomjs-launcher": "^1.0.0",
     "time-grunt": "0.4.0",
-    "chai": "3.5.0"
+    "chai": "3.5.0",
+    "karma-requirejs": "0.2.6",
+    "karma-chai": "0.1.0",
+    "requirejs": "^2.1.0"
   }
 }
