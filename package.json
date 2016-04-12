@@ -7,10 +7,11 @@
     "type": "git",
     "url": "git://github.com/rickekelschot/backbone-supercharger.git"
   },
-  "scripts" : {
-    "test" : "karma start --single-run --log-level=error"
+  "scripts": {
+    "test": "karma start --single-run"
   },
   "devDependencies": {
+    "chai": "3.5.0",
     "grunt": "~0.4.4",
     "grunt-contrib-concat": "0.4.0",
     "grunt-contrib-connect": "0.6.0",
@@ -18,14 +19,12 @@
     "grunt-contrib-watch": "0.5.3",
     "grunt-preprocess": "4.0.0",
     "grunt-template": "^0.2.3",
-    "mocha": "2.4.5",
     "karma": "0.13.22",
+    "karma-chai": "0.1.0",
     "karma-mocha": "0.2.2",
     "karma-phantomjs-launcher": "^1.0.0",
-    "time-grunt": "0.4.0",
-    "chai": "3.5.0",
-    "karma-requirejs": "0.2.6",
-    "karma-chai": "0.1.0",
-    "requirejs": "^2.1.0"
+    "karma-spec-reporter": "0.0.26",
+    "mocha": "2.4.5",
+    "time-grunt": "0.4.0"
   }
 }
