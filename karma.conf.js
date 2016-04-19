@@ -1,64 +1,61 @@
 // Karma configuration
 // Generated on Mon Apr 11 2016 14:33:46 GMT+0200 (CEST)
 
-module.exports = function(config) {
-  config.set({
+module.exports = function (config) {
+    config.set({
 
-    // base path that will be used to resolve all patterns (eg. files, exclude)
-    basePath: 'tests',
+        // base path that will be used to resolve all patterns (eg. files, exclude)
+        basePath: '',
 
+        client: {
+            captureConsole: true,
+            mocha: {
+                bail: true
+            }
+        },
 
-    client: {
-      captureConsole: true,
-      mocha: {
-        bail: true
-      }
-    },
+        // frameworks to use
+        // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
+        frameworks: ['mocha', 'chai'],
 
-    // frameworks to use
-    // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha', 'chai'],
+        // list of files / patterns to load in the browser
+        files: [
+            'test/**/*.js',
+            'node_modules/jquery/dist/jquery.js',
+            'node_modules/underscore/underscore.js',
+            'node_modules/backbone/backbone.js'
+        ],
 
-    // list of files / patterns to load in the browser
-    files: [
-      '**/*.js'
-    ],
+        // list of files to exclude
+        exclude: [],
 
+        // preprocess matching files before serving them to the browser
+        // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
+        preprocessors: {},
 
-    // list of files to exclude
-    exclude: [
-    ],
+        reporters: ['spec'],
+        port: 8080,
+        colors: true,
 
-    // preprocess matching files before serving them to the browser
-    // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
-    preprocessors: {
-    },
+        // level of logging
+        // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
+        logLevel: config.LOG_INFO,
 
-    reporters: ['spec'],
-    port: 8080,
-    colors: true,
+        // enable / disable watching file and executing tests whenever any file changes
+        autoWatch: true,
 
-    // level of logging
-    // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
-    logLevel: config.LOG_INFO,
+        // start these browsers
+        // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
+        browsers: ['PhantomJS'],
 
+        captureTimeout: 60000,
 
-    // enable / disable watching file and executing tests whenever any file changes
-    autoWatch: true,
+        // Continuous Integration mode
+        // if true, Karma captures browsers, runs the tests and exits
+        singleRun: false,
 
-    // start these browsers
-    // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['PhantomJS'],
-
-    captureTimeout: 60000,
-
-
-    // Continuous Integration mode
-    // if true, Karma captures browsers, runs the tests and exits
-    singleRun: false,
-
-    // Concurrency level
-    // how many browser should be started simultaneous
-    concurrency: Infinity
-  })
+        // Concurrency level
+        // how many browser should be started simultaneous
+        concurrency: Infinity
+    })
 };
