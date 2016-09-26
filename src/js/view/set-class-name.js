@@ -5,7 +5,7 @@ Backbone.View.prototype.setClassName = function (className) {
     className = className || _.result(this, 'className') || '';
 
     if (this.persistentClassName) {
-        className = this.persistentClassName + ' ' + className;
+        className = _.result(this, 'persistentClassName') + ' ' + className;
     }
 
     this.el.className = className;

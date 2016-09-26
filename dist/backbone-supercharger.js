@@ -878,15 +878,19 @@
         className = className || _.result(this, 'className') || '';
     
         if (this.persistentClassName) {
-            className = this.persistentClassName + ' ' + className;
+            className = _.result(this, 'persistentClassName') + ' ' + className;
         }
     
         this.el.className = className;
     };
     
     Backbone.View.prototype.parseSubscriptions = (function (doSubscribe) {
+        var subscriptions;
+        
         if (typeof this.subscriptions !== 'undefined') {
-            _.each(this.subscriptions, function (events, channel) {
+            subscriptions = _.result(this, 'subscriptions');
+    
+            _.each(subscriptions, function (events, channel) {
                 if (_.isObject(events)) {
                     _.each(events, function (handler, event) {
                         if (typeof this[handler] === 'function') {
