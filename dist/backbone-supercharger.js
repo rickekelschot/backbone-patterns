@@ -15,417 +15,28 @@
 }(this, function (Backbone, _) {
     'use strict';
 
-    var previousRadio = Backbone.Radio;
+    Backbone.Class = function (options) {
+        options = options || {};
     
-    var Radio = Backbone.Radio = {};
-    
-    Radio.VERSION = '0.9.0';
-    
-    // This allows you to run multiple instances of Radio on the same
-    // webapp. After loading the new version, call `noConflict()` to
-    // get a reference to it. At the same time the old version will be
-    // returned to Backbone.Radio.
-    Radio.noConflict = function () {
-      Backbone.Radio = previousRadio;
-      return this;
-    };
-    
-    // Whether or not we're in DEBUG mode or not. DEBUG mode helps you
-    // get around the issues of lack of warnings when events are mis-typed.
-    Radio.DEBUG = false;
-    
-    // Format debug text.
-    Radio._debugText = function(warning, eventName, channelName) {
-      return warning + (channelName ? ' on the ' + channelName + ' channel' : '') +
-        ': "' + eventName + '"';
-    };
-    
-    // This is the method that's called when an unregistered event was called.
-    // By default, it logs warning to the console. By overriding this you could
-    // make it throw an Error, for instance. This would make firing a nonexistent event
-    // have the same consequence as firing a nonexistent method on an Object.
-    Radio.debugLog = function(warning, eventName, channelName) {
-      if (Radio.DEBUG && console && console.warn) {
-        console.warn(Radio._debugText(warning, eventName, channelName));
-      }
-    };
-    
-    var eventSplitter = /\s+/;
-    
-    // An internal method used to handle Radio's method overloading for Requests and
-    // Commands. It's borrowed from Backbone.Events. It differs from Backbone's overload
-    // API (which is used in Backbone.Events) in that it doesn't support space-separated
-    // event names.
-    Radio._eventsApi = function(obj, action, name, rest) {
-      if (!name) {
-        return false;
-      }
-    
-      var results = {};
-    
-      // Handle event maps.
-      if (typeof name === 'object') {
-        for (var key in name) {
-          var result = obj[action].apply(obj, [key, name[key]].concat(rest));
-          eventSplitter.test(key) ? _.extend(results, result) : results[key] = result;
-        }
-        return results;
-      }
-    
-      // Handle space separated event names.
-      if (eventSplitter.test(name)) {
-        var names = name.split(eventSplitter);
-        for (var i = 0, l = names.length; i < l; i++) {
-          results[names[i]] = obj[action].apply(obj, [names[i]].concat(rest));
-        }
-        return results;
-      }
-    
-      return false;
-    };
-    
-    // An optimized way to execute callbacks.
-    Radio._callHandler = function(callback, context, args) {
-      var a1 = args[0], a2 = args[1], a3 = args[2];
-      switch(args.length) {
-        case 0: return callback.call(context);
-        case 1: return callback.call(context, a1);
-        case 2: return callback.call(context, a1, a2);
-        case 3: return callback.call(context, a1, a2, a3);
-        default: return callback.apply(context, args);
-      }
-    };
-    
-    // A helper used by `off` methods to the handler from the store
-    function removeHandler(store, name, callback, context) {
-      var event = store[name];
-      if (
-         (!callback || (callback === event.callback || callback === event.callback._callback)) &&
-         (!context || (context === event.context))
-      ) {
-        delete store[name];
-        return true;
-      }
-    }
-    
-    function removeHandlers(store, name, callback, context) {
-      store || (store = {});
-      var names = name ? [name] : _.keys(store);
-      var matched = false;
-    
-      for (var i = 0, length = names.length; i < length; i++) {
-        name = names[i];
-    
-        // If there's no event by this name, log it and continue
-        // with the loop
-        if (!store[name]) {
-          continue;
-        }
-    
-        if (removeHandler(store, name, callback, context)) {
-          matched = true;
-        }
-      }
-    
-      return matched;
-    }
-    
-    /*
-     * tune-in
-     * -------
-     * Get console logs of a channel's activity
-     *
-     */
-    
-    var _logs = {};
-    
-    // This is to produce an identical function in both tuneIn and tuneOut,
-    // so that Backbone.Events unregisters it.
-    function _partial(channelName) {
-      return _logs[channelName] || (_logs[channelName] = _.partial(Radio.log, channelName));
-    }
-    
-    _.extend(Radio, {
-    
-      // Log information about the channel and event
-      log: function(channelName, eventName) {
-        var args = _.rest(arguments, 2);
-        console.log('[' + channelName + '] "' + eventName + '"', args);
-      },
-    
-      // Logs all events on this channel to the console. It sets an
-      // internal value on the channel telling it we're listening,
-      // then sets a listener on the Backbone.Events
-      tuneIn: function(channelName) {
-        var channel = Radio.channel(channelName);
-        channel._tunedIn = true;
-        channel.on('all', _partial(channelName));
-        return this;
-      },
-    
-      // Stop logging all of the activities on this channel to the console
-      tuneOut: function(channelName) {
-        var channel = Radio.channel(channelName);
-        channel._tunedIn = false;
-        channel.off('all', _partial(channelName));
-        delete _logs[channelName];
-        return this;
-      }
-    });
-    
-    /*
-     * Backbone.Radio.Commands
-     * -----------------------
-     * A messaging system for sending orders.
-     *
-     */
-    
-    Radio.Commands = {
-    
-      // Issue a command
-      command: function(name) {
-        var args = _.rest(arguments);
-        if (Radio._eventsApi(this, 'command', name, args)) {
-          return this;
-        }
-        var channelName = this.channelName;
-        var commands = this._commands;
-    
-        // Check if we should log the command, and if so, do it
-        if (channelName && this._tunedIn) {
-          Radio.log.apply(this, [channelName, name].concat(args));
-        }
-    
-        // If the command isn't handled, log it in DEBUG mode and exit
-        if (commands && (commands[name] || commands['default'])) {
-          var handler = commands[name] || commands['default'];
-          args = commands[name] ? args : arguments;
-          Radio._callHandler(handler.callback, handler.context, args);
-        } else {
-          Radio.debugLog('An unhandled command was fired', name, channelName);
-        }
+        _.extend(this, _.pick(options, this.optionNames || {}));
+      
+        this.initialize.apply(this, arguments);
     
         return this;
-      },
-    
-      // Register a handler for a command.
-      comply: function(name, callback, context) {
-        if (Radio._eventsApi(this, 'comply', name, [callback, context])) {
-          return this;
-        }
-        this._commands || (this._commands = {});
-    
-        if (this._commands[name]) {
-          Radio.debugLog('A command was overwritten', name, this.channelName);
-        }
-    
-        this._commands[name] = {
-          callback: callback,
-          context: context || this
-        };
-    
-        return this;
-      },
-    
-      // Register a handler for a command that happens just once.
-      complyOnce: function(name, callback, context) {
-        if (Radio._eventsApi(this, 'complyOnce', name, [callback, context])) {
-          return this;
-        }
-        var self = this;
-    
-        var once = _.once(function() {
-          self.stopComplying(name);
-          return callback.apply(this, arguments);
-        });
-    
-        return this.comply(name, once, context);
-      },
-    
-      // Remove handler(s)
-      stopComplying: function(name, callback, context) {
-        if (Radio._eventsApi(this, 'stopComplying', name)) {
-          return this;
-        }
-    
-        // Remove everything if there are no arguments passed
-        if (!name && !callback && !context) {
-          delete this._commands;
-        } else if (!removeHandlers(this._commands, name, callback, context)) {
-          Radio.debugLog('Attempted to remove the unregistered command', name, this.channelName);
-        }
-    
-        return this;
-      }
     };
     
-    /*
-     * Backbone.Radio.Requests
-     * -----------------------
-     * A messaging system for requesting data.
-     *
-     */
+    _.extend(Backbone.Class.prototype, Backbone.Events);
     
-    function makeCallback(callback) {
-      return _.isFunction(callback) ? callback : function () { return callback; };
-    }
-    
-    Radio.Requests = {
-    
-      // Make a request
-      request: function(name) {
-        var args = _.rest(arguments);
-        var results = Radio._eventsApi(this, 'request', name, args);
-        if (results) {
-          return results;
-        }
-        var channelName = this.channelName;
-        var requests = this._requests;
-    
-        // Check if we should log the request, and if so, do it
-        if (channelName && this._tunedIn) {
-          Radio.log.apply(this, [channelName, name].concat(args));
-        }
-    
-        // If the request isn't handled, log it in DEBUG mode and exit
-        if (requests && (requests[name] || requests['default'])) {
-          var handler = requests[name] || requests['default'];
-          args = requests[name] ? args : arguments;
-          return Radio._callHandler(handler.callback, handler.context, args);
-        } else {
-          Radio.debugLog('An unhandled request was fired', name, channelName);
-        }
-      },
-    
-      // Set up a handler for a request
-      reply: function(name, callback, context) {
-        if (Radio._eventsApi(this, 'reply', name, [callback, context])) {
-          return this;
-        }
-    
-        this._requests || (this._requests = {});
-    
-        if (this._requests[name]) {
-          Radio.debugLog('A request was overwritten', name, this.channelName);
-        }
-    
-        this._requests[name] = {
-          callback: makeCallback(callback),
-          context: context || this
-        };
-    
-        return this;
-      },
-    
-      // Set up a handler that can only be requested once
-      replyOnce: function(name, callback, context) {
-        if (Radio._eventsApi(this, 'replyOnce', name, [callback, context])) {
-          return this;
-        }
-    
-        var self = this;
-    
-        var once = _.once(function() {
-          self.stopReplying(name);
-          return makeCallback(callback).apply(this, arguments);
-        });
-    
-        return this.reply(name, once, context);
-      },
-    
-      // Remove handler(s)
-      stopReplying: function(name, callback, context) {
-        if (Radio._eventsApi(this, 'stopReplying', name)) {
-          return this;
-        }
-    
-        // Remove everything if there are no arguments passed
-        if (!name && !callback && !context) {
-          delete this._requests;
-        } else if (!removeHandlers(this._requests, name, callback, context)) {
-          Radio.debugLog('Attempted to remove the unregistered request', name, this.channelName);
-        }
-    
-        return this;
-      }
+    Backbone.Class.prototype.initialize = function () {
     };
     
-    /*
-     * Backbone.Radio.channel
-     * ----------------------
-     * Get a reference to a channel by name.
-     *
-     */
-    
-    Radio._channels = {};
-    
-    Radio.channel = function(channelName) {
-      if (!channelName) {
-        throw new Error('You must provide a name for the channel.');
-      }
-    
-      if (Radio._channels[channelName]) {
-        return Radio._channels[channelName];
-      } else {
-        return (Radio._channels[channelName] = new Radio.Channel(channelName));
-      }
-    };
-    
-    /*
-     * Backbone.Radio.Channel
-     * ----------------------
-     * A Channel is an object that extends from Backbone.Events,
-     * Radio.Commands, and Radio.Requests.
-     *
-     */
-    
-    Radio.Channel = function(channelName) {
-      this.channelName = channelName;
-    };
-    
-    _.extend(Radio.Channel.prototype, Backbone.Events, Radio.Commands, Radio.Requests, {
-    
-      // Remove all handlers from the messaging systems of this channel
-      reset: function() {
-        this.off();
-        this.stopListening();
-        this.stopComplying();
-        this.stopReplying();
-        return this;
-      }
-    });
-    
-    /*
-     * Top-level API
-     * -------------
-     * Supplies the 'top-level API' for working with Channels directly
-     * from Backbone.Radio.
-     *
-     */
-    
-    var channel, args, systems = [Backbone.Events, Radio.Commands, Radio.Requests];
-    
-    _.each(systems, function(system) {
-      _.each(system, function(method, methodName) {
-        Radio[methodName] = function(channelName) {
-          args = _.rest(arguments);
-          channel = this.channel(channelName);
-          return channel[methodName].apply(channel, args);
-        };
-      });
-    });
-    
-    Radio.reset = function(channelName) {
-      var channels = !channelName ? this._channels : [this._channels[channelName]];
-      _.invoke(channels, 'reset');
-    };
-    
+    Backbone.Class.extend = Backbone.View.extend;
     Backbone.Radio.Channel.prototype.subscribe = Backbone.Radio.Channel.prototype.on;
     Backbone.Radio.Channel.prototype.subscribeOnce = Backbone.Radio.Channel.prototype.once;
     Backbone.Radio.Channel.prototype.unsubscribe = Backbone.Radio.Channel.prototype.off;
     Backbone.Radio.Channel.prototype.publish = Backbone.Radio.Channel.prototype.trigger;
     
-    Backbone.utils = {};
+    Backbone.utils = Backbone.utils || {};
     Backbone.utils.readonly = (function (obj) {
         var descriptor;
         if (typeof Object.defineProperty !== "undefined") {
@@ -447,6 +58,25 @@
     
         return false;
     });
+    Backbone.utils = Backbone.utils || {};
+    Backbone.utils.loadModule = (function () {
+        var define, enqueue, require;
+    
+        define = window.define;
+        require = window.require;
+        if (typeof define === 'function' && define.amd) {
+            return function (moduleName, handler) {
+                handler(require(moduleName));
+            };
+        } else {
+            enqueue = typeof setImmediate !== "undefined" && setImmediate !== null ? setImmediate : setTimeout;
+            return function (moduleName, handler) {
+                return enqueue(function () {
+                    return handler(require(moduleName));
+                });
+            };
+        }
+    })();
     /*global Backbone, _ */
     Backbone.decorators || (Backbone.decorators = {});
     Backbone.decorators.PubSub = {
@@ -489,6 +119,75 @@
     
         channel: Backbone.Radio.channel
     };
+    /*global Backbone, _ */
+    
+    Backbone.Command = Backbone.Class.extend({
+    
+        optionNames: ['onComplete', 'onError'],
+    
+        promise: null,
+        resolve: null,
+        reject: null,
+    
+        constructor: function () {
+            Backbone.Class.prototype.apply(this, arguments);
+            this.promise = Backbone.$.Deferred();
+            _.bindAll(this, 'complete', 'error');
+        },
+    
+        execute: function () {
+            return this.promise;
+        },
+    
+        complete: function () {
+            if (_.isFunction(this.resolve)) {
+                if (_.isFunction(this.onComplete)) {
+                    this.onComplete(arguments);
+                }
+                this.promise.resolve.apply(this, arguments);
+                this.dispose();
+            }
+        },
+    
+        error: function () {
+            if (_.isFunction(this.reject)) {
+                if (_.isFunction(this.onError)) {
+                    this.onError(arguments);
+                }
+                this.promise.reject.apply(this, arguments);
+                this.dispose();
+            }
+        },
+    
+        disposed: false,
+    
+        dispose: function () {
+            // if (this.disposed) {
+            //     return;
+            // }
+            //
+            // var obj, prop,
+            //     hasProp = {}.hasOwnProperty;
+            //
+            // for (prop in this) {
+            //     if (!hasProp.call(this, prop)) continue;
+            //     obj = this[prop];
+            //     if (!(obj && typeof obj.dispose === 'function')) {
+            //         continue;
+            //     }
+            //     obj.dispose();
+            //     delete this[prop];
+            // }
+            //
+            // this.disposed = true;
+            // if (typeof Object.freeze === "function") {
+            //     Object.freeze(this);
+            // }
+        }
+    
+    }, Backbone.decorators.RequestResponse, Backbone.Events);
+    
+    
     /*global Backbone, _ */
     (function () {
     
@@ -613,6 +312,171 @@
             this.xhr.abort();
         }
     });
+    Backbone.History.ROUTE_CHANGE = 'history:route:change';
+    Backbone.History.ROUTE_REJECTED = 'history:route:rejected';
+    Backbone.History.ROUTE_RESOLVED = 'history:route:resolved';
+    
+    _.extend(Backbone.History.prototype, {
+    
+        storeRouteRequest: function(fragment, options) {
+            var promise = Backbone.$.Deferred();
+    
+            promise
+                .then(this.resolveRoute.bind(this, fragment, options),
+                    this.rejectRoute.bind(this, fragment, options));
+    
+            this.pendingRoute = {
+                route: {
+                    fragment: fragment,
+                    options: options
+                },
+                promise: promise
+            };
+        },
+    
+        getPendingRoute: function () {
+            return this.pendingRoute;
+        },
+    
+        resolveRoute: function (fragment, options) {
+            delete this.pendingRoute;
+            this.fragment = fragment;
+    
+            // If pushState is available, we use it to set the fragment as a real URL.
+            if (this._usePushState) {
+                this.history[options.replace ? 'replaceState' : 'pushState']({}, document.title, url);
+    
+                // If hash changes haven't been explicitly disabled, update the hash
+                // fragment to store history.
+            } else if (this._wantsHashChange) {
+                this._updateHash(this.location, fragment, options.replace);
+                if (this.iframe && fragment !== this.getHash(this.iframe.contentWindow)) {
+                    var iWindow = this.iframe.contentWindow;
+    
+                    // Opening and closing the iframe tricks IE7 and earlier to push a
+                    // history entry on hash-tag change.  When replace is true, we don't
+                    // want this.
+                    if (!options.replace) {
+                        iWindow.document.open();
+                        iWindow.document.close();
+                    }
+    
+                    this._updateHash(iWindow.location, fragment, options.replace);
+                }
+    
+                // If you've told us that you explicitly don't want fallback hashchange-
+                // based history, then `navigate` becomes a page refresh.
+            } else {
+                this.location.assign(url);
+            }
+    
+            Backbone.mediator.publish(Backbone.History.ROUTE_RESOLVED, fragment, options);
+        },
+    
+        rejectRoute: function (fragment, options) {
+            Backbone.mediator.publish(Backbone.History.ROUTE_REJECTED, fragment, options);
+        },
+    
+        //TODO: build check if there is already an open pending route
+    
+        navigate: function (fragment, options) {
+            if (!Backbone.History.started) return false;
+            if (!options || options === true) options = {trigger: !!options};
+    
+            // Normalize the fragment.
+            fragment = this.getFragment(fragment || '');
+    
+            // Don't include a trailing slash on the root.
+            var rootPath = this.root;
+            if (fragment === '' || fragment.charAt(0) === '?') {
+                rootPath = rootPath.slice(0, -1) || '/';
+            }
+            var url = rootPath + fragment;
+    
+            // Strip the hash and decode for matching.
+            fragment = this.decodeFragment(fragment.replace(/#.*$/, ''));
+    
+            if (this.fragment === fragment) return;
+    
+            this.storeRouteRequest(fragment, options);
+    
+            if (!options.trigger) {
+                this.getPendingRoute().promise.resolve();
+            } else {
+                Backbone.mediator.publish(Backbone.History.ROUTE_CHANGE);
+            }
+        },
+    
+        dispose: function () {
+            delete this.handlers;
+            Backbone.History.started = false;
+        }
+    });
+    
+    
+    /*global Backbone, _, require */
+    (function () {
+    
+        'use strict';
+    
+        Backbone.Route = Backbone.Class.extend({
+    
+            escapeRegExp: /[\-{}\[\]+?.,\\\^$|#\s]/g,
+            optionalRegExp: /\((.*?)\)/g,
+            paramRegExp: /(?::|\*)(\w+)/g,
+    
+    
+            initialize: function (route, options) {
+                this.options = _.extend({}, options);
+    
+                if (this.options.name) {
+                    this.name = this.options.name;
+                }
+    
+                this.allParams = [];
+                this.requiredParams = [];
+                this.optionalParams = [];
+    
+                this.route = route;
+    
+                Object.freeze(this);
+            },
+    
+            isMatch: function (route) {
+                console.log('route:isMatch', this.route);
+            },
+    
+            isSubroute: function () {
+                return false;
+            },
+    
+            getControllerName: function () {
+                return this.route;
+            },
+    
+            createRegExp: function () {
+                var pattern = this.route.path.replace(this.escapeRegExp, '\\$&');
+    
+                this.replaceParams(pattern, function (match, param) {
+                    return this.allParams.push(param);
+                }.bind(this));
+    
+                pattern = pattern.replace(optionalRegExp, this.parseOptionalPortion);
+                pattern = this.replaceParams(pattern, function (match, param) {
+                    this.requiredParams.push(param);
+                    return this.paramCapturePattern(match);
+                }.bind(this));
+    
+                return this.regExp = RegExp("^" + pattern + "(?=\\/*(?=\\?|$))");
+            },
+    
+            replaceParams: function(string, callback) {
+                return string.replace(paramRegExp, callback);
+            }
+    
+        });
+    })();
+    
     Backbone.Router.prototype.execute = function(callback, args) {
         Backbone.history.trigger('pre-route', args);
         this.trigger('pre-route', args);
@@ -622,6 +486,228 @@
         Backbone.history.trigger('post-route', args);
         this.trigger('post-route', args);
     };
+    /*global Backbone, _, require */
+    (function () {
+    
+        'use strict';
+    
+        Backbone.Router = Backbone.Router.extend({
+    
+            _routes: [],
+    
+            activeRoute: null,
+            activeInstance: null,
+    
+            initialize: function (prefix, options) {
+                options = options || {};
+                _.each(this.routes, function (route, path) {
+                    this._routes.push(new Backbone.Route({
+                        handler: route,
+                        path: path
+                    }));
+                }.bind(this));
+    
+                if (options.subrouter !== true) {
+                    Backbone.mediator.subscribe('history:route:change', this.processRoute.bind(this));
+                }
+    
+            },
+    
+            processRoute: function () {
+                var pendingRoute = Backbone.history.getPendingRoute(),
+                    match = this.matchRoute(pendingRoute.route);
+    
+                console.log('MATCH!!!', this.routes);
+    
+                if (!match) {
+                    pendingRoute.promise.reject();
+                } else {
+                    if (match.isSubroute()) {
+                        if (this.isActiveSubroute(match)) {
+                            this.activeInstance.processRoute();
+                        } else {
+                            // load new router via command and execute
+                        }
+                    } else {
+                        if (this.isActiveController(match)) {
+                            this.activeInstance.processRoute(match)
+                                .then(pendingRoute.promise.resolve, pendingRoute.promise.reject);
+                        } else {
+                            console.log('Executing controller', match.getControllerName);
+                            this.executeCommand(Backbone.LoadControllerCommand, {
+                                controllerName: match.getControllerName
+                            }).then(function () {
+                                console.log(arguments);
+                            });
+                        }
+    
+                    }
+                }
+            },
+    
+            executeCommand: function (Command, options) {
+                var command = new Command(options);
+                return command.execute();
+            },
+    
+            matchRoute: function (route) {
+                var matchedRoute;
+    
+                this._routes.forEach(function (_route) {
+                    if (_route.isMatch(route)) {
+                        matchedRoute = _route;
+                    }
+                });
+    
+                return matchedRoute;
+            },
+    
+            isActiveSubroute: function (match) {
+                if (!this.activeInstance || !(this.activeInstance instanceof Backbone.Router)) {
+                    return false;
+                }
+            },
+    
+            isActiveController: function (match) {
+                if (!this.activeInstance || !(this.activeInstance instanceof Backbone.Controller)) {
+                    return false;
+                }
+            },
+    
+            // navigate: function (route, options) {
+            //     if (route.substr(0, 1) != '/' &&
+            //         route.indexOf(this.prefix.substr(0, this.prefix.length - 1)) !== 0) {
+            //
+            //         route = this.prefix +
+            //             (route ? this.separator : "") +
+            //             route;
+            //     }
+            //     Backbone.Router.prototype.navigate.call(this, route, options);
+            // },
+    
+            // route: function (route, controllerAction) {
+            //     // strip off any leading slashes in the sub-route path,
+            //     // since we already handle inserting them when needed.
+            //     if (route.substr(0) === "/") {
+            //         route = route.substr(1, route.length);
+            //     }
+            //
+            //     var _route = this.prefix;
+            //     if (route && route.length > 0) {
+            //         if (this.prefix.length > 0)
+            //             _route += this.separator;
+            //
+            //         _route += route;
+            //     }
+            //
+            //     // remove the un-prefixed route from our routes hash
+            //     delete this.routes[route];
+            //
+            //     // add the prefixed-route.  note that this routes hash is just provided
+            //     // for informational and debugging purposes and is not used by the actual routing code.
+            //     this.routes[_route] = controllerAction;
+            //
+            //     // delegate the creation of the properly-prefixed route to Backbone
+            //     return Backbone.Router.prototype.route.call(this, _route, controllerAction, controllerAction);
+            // },
+    
+            // loadController: function (controllerName, handler) {
+            //     var controller = controllerName.replace(/[A-Z]/g, function (g) {
+            //             return '-' + g[1].toLowerCase();
+            //         }),
+            //         moduleName = this.controllerPath + controller;
+            //
+            //     return Backbone.utils.loadModule(moduleName, handler);
+            // },
+            //
+            // executedAction: function (nextController, route) {
+            //     this.currentController = nextController;
+            //     Backbone.mediator.publish('route:resolved', route);
+            // },
+    
+            // rejected: function (router, controllerName, route) {
+            //     Backbone.mediator.publish('route:rejected', route);
+            // },
+    
+            // execute: function (controllerAction, args) {
+            //     var controller,
+            //         action,
+            //         route;
+            //
+            //     if (typeof controllerAction !== 'string') {
+            //         throw 'should be a alkdjlaksjd';
+            //     }
+            //
+            //     controller = controllerAction.split('#')[0];
+            //     action = controllerAction.split('#')[1];
+            //     route = {
+            //         controller: controller,
+            //         action: action
+            //     };
+            //
+            //     if (this.currentRoute.controller !== controller) {
+            //         return this.loadController(controller, function (Controller) {
+            //             var nextController = new Controller();
+            //             nextController.fireAction(action, args)
+            //                 .then(this.executedAction.bind(this, nextController, route), this.rejected(this, controller, route));
+            //         }.bind(this));
+            //     }
+            //
+            //     this.currentController.fireAction(action, args)
+            //         .then(this.executedAction.bind(this, this.currentController, route),
+            //             this.rejected(this, controller, route));
+            // }
+        });
+    })();
+    
+    /*global Backbone, _ */
+    
+    Backbone.Controller = Backbone.Class.extend({
+    
+        isPersistent: false,
+    
+        constructor: function () {
+    
+        },
+    
+        fireAction: function (actionName, routeParams) {
+            var beforeAction = this['before' + actionName.substring(0, 1).toUpperCase() + actionName.substring(1)],
+                action = this[actionName];
+    
+            return new Promise(function (resolve, reject) {
+                if (typeof beforeAction === 'function') {
+                    beforeAction.call(this, routeParams).then(function () {
+                        action.call(this, routeParams);
+                        resolve();
+                    }.bind(this), function (error) {
+                        reject(error);
+                    });
+                } else {
+                    action.call(this, routeParams);
+                    resolve();
+                }
+            }.bind(this));
+        },
+    
+        disposed: false,
+    
+        dispose: function () {
+            var prop;
+    
+            if (this.disposed) {
+                return;
+            }
+    
+            for (prop in this) {
+                if (this.hasOwnProperty(prop)) {
+                    delete this[prop];
+                }
+            }
+    
+            this.disposed = true;
+            return typeof Object.freeze === "function" ? Object.freeze(this) : void 0;
+        }
+    });
     var oldCtor = Backbone.View.prototype.constructor;
     
     Backbone.View = Backbone.View.extend({
@@ -1020,19 +1106,7 @@
         }
     };
     
-    Backbone.Class = function (options) {
-      options = options || {};
-    
-      _.extend(this, _.pick(options, this.optionNames || {}));
-    
-      this.initialize.apply(this, arguments);
-    };
-    
-    _.extend(Backbone.Class.prototype, Backbone.Events);
-    
-    Backbone.Class.prototype.initialize = function () {};
-    
-    Backbone.Class.extend = Backbone.View.extend;
+
 
     return Backbone;
 }));

@@ -32,8 +32,11 @@ module.exports = function (grunt) {
                 livereload: true
             },
             js: {
-                files: ['src/js/**/*.js'],
-                tasks: ['build']
+                files: [
+                    'src/js/**/*.js',
+                    'test/**/*.js'
+                ],
+                tasks: ['build', 'karma:test']
             }
         },
 
@@ -44,7 +47,7 @@ module.exports = function (grunt) {
             }
         },
 
-        radioPkg: grunt.file.readJSON('bower_components/backbone.radio/package.json'),
+        radioPkg: grunt.file.readJSON('node_modules/backbone.radio/package.json'),
         meta: {
             version: '<%= radioPkg.version %>',
             banner: '// Backbone.Radio v<%= meta.version %>\n'
@@ -60,6 +63,13 @@ module.exports = function (grunt) {
                 src: '<%= preprocess.supercharger.dest %>',
                 dest: '<%= preprocess.supercharger.dest %>'
             }
+        },
+
+        karma: {
+            test: {
+                singleRun: true,
+                configFile: 'karma.conf.js'
+            }
         }
 
     });
@@ -67,6 +77,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-connect');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-karma');
     grunt.loadNpmTasks('grunt-preprocess');
     grunt.loadNpmTasks('grunt-template');
 

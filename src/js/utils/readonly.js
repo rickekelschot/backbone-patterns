@@ -1,4 +1,4 @@
-Backbone.utils = {};
+Backbone.utils = Backbone.utils || {};
 Backbone.utils.readonly = (function (obj) {
     var descriptor;
     if (typeof Object.defineProperty !== "undefined") {

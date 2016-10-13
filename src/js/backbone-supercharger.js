@@ -15,12 +15,14 @@
 }(this, function (Backbone, _) {
     'use strict';
 
-    // @include ../../bower_components/backbone.radio/src/backbone.radio.js
+    // @include class/class.js
     // @include channel/channel.js
     // @include utils/readonly.js
+    // @include utils/load-module.js
     // @include decorators/pubsub.js
     // @include decorators/request-response.js
     // @include decorators/command.js
+    // @include command/command.js
     // @include mediator/mediator.js
     // @include collection/fetch.js
     // @include collection/sync.js
@@ -29,7 +31,11 @@
     // @include model/save.js
     // @include model/sync.js
     // @include model/abort.js
+    // @include history/history.js
+    // @include router/route.js
     // @include router/execute.js
+    // @include router/router.js
+    // @include controller/controller.js
     // @include view/constructor.js
     // @include view/added-to-dom.js
     // @include view/append.js
@@ -49,7 +55,7 @@
     // @include view/dispose.js
     // @include view/trigger-bubble.js
     // @include view/trigger-capture.js
-    // @include class/class.js
+
 
     return Backbone;
 }));
